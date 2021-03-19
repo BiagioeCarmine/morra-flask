@@ -16,8 +16,9 @@ if os.getenv("JWT_KEY") is None:
 
 
 @app.route("/")
-def root():
-  return "Non c'è niente da vedere"
+def test_root():
+    return "Non c'è niente da vedere"
+
 
 if __name__ == "__main__":
     app.run()

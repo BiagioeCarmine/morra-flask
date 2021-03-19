@@ -54,13 +54,18 @@ class User(db.Base):
 
     __tablename__ = 'Users'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(255), unique=True)
-    password = Column(String(255))
+    username = Column(String(30), unique=True)
+    password = Column(String(60))
     vittorie = Column(Integer)
     sconfitte = Column(Integer)
     punteggio = Column(Integer)
 
     def __init__(self, username, password):
+        """
+
+        :param username: NOT UTF-8 ENCODED
+        :param password: UTF-8 ENCODED
+        """
         self.username = username
         self.password = hashpw(password, gensalt(consts.BCRYPT_SALT_ROUNDS))
         self.vittorie = 0
@@ -68,5 +73,62 @@ class User(db.Base):
         self.punteggio = 0
 
     def check_password(self, password):
+        """
+
+        :param password: UTF-8 encoded password
+        :return: True if password matches hash, False if not
+        """
         return checkpw(password, self.password)
 
+    def jsonify(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "vittorie": self.vittorie,
+            "sconfitte": self.sconfitte,
+            "punteggio": self.punteggio
+        }
+
+    @staticmethod
+    def validate_password(password: str):
+        """
+        La password è valida se è lunga tra i 5 e i 50 caratteri e composta solo
+        da caratteri stampabili. Si potrebbe usare una regex in futuro ma
+        per il momento lo faccio a mano.
+
+        :param password: password to validate, MUST'NT BE UTF-8 ENCODED
+        :return: True if the password is valid, False if it isn't
+        """
+        if password is None:
+            return False
+
+        password_len = len(password)
+        if password_len < 5 or password_len > 50:
+            return False
+
+        for char in password:
+            if not char.isprintable():
+                return False
+        return True
+
+    @staticmethod
+    def validate_username(username: str):
+        """
+        Il nome utente è valido se composto solo da lettere
+        o numeri, e se è lungo almeno 3 caratteri e al
+        massimo 30
+
+        :param username: username to validate, MUST'NT BE UTF-8 ENCODED
+        :return: True if the username is valid, False if it isn't
+        """
+        if username is None:
+            return False
+
+        username_len = len(username)
+        if username_len < 3 or username_len > 30:
+            return False
+
+        for char in username:
+            if not char.isalnum():
+                return False
+        return True

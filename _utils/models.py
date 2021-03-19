@@ -1,5 +1,6 @@
 from bcrypt import hashpw, gensalt, checkpw
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from _utils import db, consts
 
 """
@@ -59,6 +60,7 @@ class User(db.Base):
     vittorie = Column(Integer)
     sconfitte = Column(Integer)
     punteggio = Column(Integer)
+    partite = relationship("Match")
 
     def __init__(self, username, password):
         """
@@ -139,18 +141,18 @@ class User(db.Base):
     def incremento_sconfitte(self, sconfitte):
         self.sconfitte += 1
 
-class Matches(db.Base):
 
-
+class Match(db.Base):
     __tablename__ = 'Matches'
     id = Column(Integer, primary_key=True, autoincrement=True)
     userid1 = Column(Integer)
     userid2 = Column(Integer)
-    punti1 = Column(Integer)
-    punti2 = Column(Integer)
+    punti1 = Column(Integer, ForeignKey('user1.id'))
+    punti2 = Column(Integer, ForeignKey('user2.id'))
+    user1 = relationship("User", back_populates="partite")
+    user2 = relationship("User", back_populates="partite")
 
     def __init__(self, userid1, userid2):
-
         self.punti1 = 0
         self.punti2 = 0
         self.userid1 = userid1

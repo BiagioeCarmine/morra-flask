@@ -132,3 +132,32 @@ class User(db.Base):
             if not char.isalnum():
                 return False
         return True
+
+    def incremento_vittorie(self, vittorie):
+        self.vittorie += 1
+
+    def incremento_sconfitte(self, sconfitte):
+        self.sconfitte += 1
+
+class Matches(db.Base):
+
+
+    __tablename__ = 'Matches'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    userid1 = Column(Integer)
+    userid2 = Column(Integer)
+    punti1 = Column(Integer)
+    punti2 = Column(Integer)
+
+    def __init__(self, userid1, userid2):
+
+        self.punti1 = 0
+        self.punti2 = 0
+        self.userid1 = userid1
+        self.userid2 = userid2
+
+    def incremento_punti1(self, punti1):
+        self.punti1 += 1
+
+    def incremento_punti2(self, punti2):
+        self.punti2 += 1

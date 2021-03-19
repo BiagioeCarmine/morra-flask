@@ -22,7 +22,7 @@ def get_users():
 
 @users.route("/user/<user_id>", methods=['GET'])
 def get_user(user_id):
-    return models.User.query.get(user_id).jsonify()
+    return jsonify(models.User.query.get(user_id).jsonify())
 
 
 @users.route("/signup", methods=['POST'])

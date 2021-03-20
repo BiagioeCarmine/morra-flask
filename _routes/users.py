@@ -44,6 +44,6 @@ def login():
     user = models.User.query.filter(models.User.username == request.form['username']).first()
     check = user.check_password(request.form['password'].encode("utf-8"))
     if check:
-        return jwt.encode({"username": request.form['username']}, jwt_key, algorithm="HS256")
+        return jwt.encode({"id": user.id}, jwt_key, algorithm="HS256")
     else:
         return Response("wrong password", status=401)

@@ -35,7 +35,6 @@ def signup():
         return Response("bad password", status=400)
     user = models.User(request.form['username'], request.form['password'].encode("utf-8"))
     db.session.add(user)
-    db.session.commit()
     return Response("OK", status=201)
 
 

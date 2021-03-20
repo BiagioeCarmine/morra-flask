@@ -145,12 +145,12 @@ class User(db.Base):
 class Match(db.Base):
     __tablename__ = 'Matches'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    userid1 = Column(Integer)
-    userid2 = Column(Integer)
-    punti1 = Column(Integer, ForeignKey('user1.id'))
-    punti2 = Column(Integer, ForeignKey('user2.id'))
-    user1 = relationship("User", back_populates="partite")
-    user2 = relationship("User", back_populates="partite")
+    userid1 = Column(Integer, ForeignKey('Users.id'))
+    userid2 = Column(Integer, ForeignKey('Users.id'))
+    punti1 = Column(Integer)
+    punti2 = Column(Integer)
+    user1 = relationship("Users", back_populates="partite", foreign_keys=["userid1"])
+    user2 = relationship("Users", back_populates="partite", foreign_keys=["userid2"])
 
     def __init__(self, userid1, userid2):
         self.punti1 = 0

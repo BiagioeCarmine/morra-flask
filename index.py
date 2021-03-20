@@ -1,11 +1,14 @@
 from flask import Flask
-from _utils.db import init_db
-import _routes
 import os
+
+from _utils import db, socketio, redis_db
+import _routes
+
 
 app = Flask(__name__)
 
-init_db()
+db.init_db()
+socketio.init_app(app, cors_allowed_origins="*")
 
 app.register_blueprint(_routes.match)
 app.register_blueprint(_routes.matchmaking)
@@ -21,4 +24,4 @@ def test_root():
 
 
 if __name__ == "__main__":
-    app.run()
+    socketio.run(app, use_reloader=False)

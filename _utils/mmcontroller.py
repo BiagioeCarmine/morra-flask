@@ -121,14 +121,17 @@ class MMController:
             p = redis_db.pipeline()
             p.watch("private_queue")
             cur_queue = p.get("private_queue")
+            if cur_queue is None:
+                raise UserAloneLikeADogError
             p.multi()
             users_in_queue = cur_queue.decode('utf-8').split()
             if not str(friend) in users_in_queue:
                 raise UserAloneLikeADogError
-            p.execute()
             redis_db.set("user for sid " + sid, user)
             redis_db.set("sid for user " + str(user), sid)
             MMController.create_match(friend, user)
+            p.set("private_queue", ' '.join(users_in_queue))
+            users_in_queue.remove(str(friend))
         except UserAloneLikeADogError:
             pass
         except WatchError:

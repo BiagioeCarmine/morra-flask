@@ -33,6 +33,8 @@ def signup():
         return Response("bad username", status=400)
     if not models.User.validate_password(request.form['password']):
         return Response("bad password", status=400)
+    if models.User.query.filter(models.User.username == request.form['username']).all():
+        return Response("username conflict", status=409)
     user = models.User(request.form['username'], request.form['password'].encode("utf-8"))
     db.session.add(user)
     db.session.commit()
@@ -41,9 +43,11 @@ def signup():
 
 @users.route("/login", methods=['POST'])
 def login():
-    user = models.User.query.filter(models.User.username == request.form['username']).first()
-    check = user.check_password(request.form['password'].encode("utf-8"))
-    if check:
+    try:
+        user = models.User.query.filter(models.User.username == request.form['username']).first()
+        check = user.check_password(request.form['password'].encode("utf-8"))
+        if not check:
+            raise Exception
         return jwt.encode({"id": user.id}, jwt_key, algorithm="HS256")
-    else:
-        return Response("wrong password", status=401)
+    except:
+        return Response("bad credentials", status=401)

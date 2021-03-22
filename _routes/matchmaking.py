@@ -23,7 +23,6 @@ class MMNamespace(Namespace):
 
     def on_disconnect(self):
         mmcontroller.MMController.remove_sid(request.sid)
-        pass
 
     def on_queue(self, data):
         try:

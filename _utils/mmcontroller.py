@@ -59,7 +59,6 @@ class MMController:
                 p.set("public_queue", str(user) + " ")
             else:
                 creating_match = True
-                cur_queue = cur_queue
                 print("cur_queue not empty", flush=True)
                 users_in_queue = cur_queue.decode('utf-8').split()
                 if str(user) in users_in_queue:

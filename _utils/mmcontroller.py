@@ -7,7 +7,7 @@ class UserAddedTwiceError(Exception):
     pass
 
 
-class UserAloneLikeADog(Exception):
+class UserAloneLikeADogError(Exception):
     pass
 
 
@@ -116,7 +116,7 @@ class MMController:
         redis_db.set("sid for user " + str(user), sid)
 
     @staticmethod
-    def play_whit_friends(user: int, sid: str, friend: int):
+    def play_with_friends(user: int, sid: str, friend: int):
         try:
             p = redis_db.pipeline()
             p.watch("private_queue")
@@ -124,13 +124,13 @@ class MMController:
             p.multi()
             users_in_queue = cur_queue.decode('utf-8').split()
             if not str(friend) in users_in_queue:
-                raise UserAloneLikeADog
+                raise UserAloneLikeADogError
             p.execute()
             redis_db.set("user for sid " + sid, user)
             redis_db.set("sid for user " + str(user), sid)
             MMController.create_match(friend, user)
-        except UserAloneLikeADog:
+        except UserAloneLikeADogError:
             pass
         except WatchError:
-            MMController.play_whit_friends(user, sid,  friend)
+            MMController.play_with_friends(user, sid,  friend)
             print("watch error", flush=True)

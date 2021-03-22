@@ -3,6 +3,10 @@ from redis import WatchError
 from _routes import matchmaking
 
 
+class UserAddedTwiceError(Exception):
+    pass
+
+
 class MMController:
     """
     potremmo avere requisiti più complessi
@@ -18,7 +22,10 @@ class MMController:
     """
     @staticmethod
     def notify_match_created(user: int, match: int):
-        matchmaking.communicate_match_id(redis_db.get("sid for user "+str(user)), match)
+        sid = redis_db.get("sid for user "+str(user)).decode("utf-8")
+        print("avvisando il sid")
+        print(sid)
+        matchmaking.communicate_match_id(sid, match)
 
     @staticmethod
     def create_match(user1: int, user2: int):
@@ -30,18 +37,18 @@ class MMController:
         """
         print("creating match between {} and {}".format(user1, user2), flush=True)
         match = models.Match(user1, user2)
+        print(match, flush=True)
         db.session.add(match)
         db.session.commit()
-        print("Matches")
-        print(models.Match.query.all())
+        print("Matches", flush=True)
+        print(models.Match.query.all(), flush=True)
         MMController.notify_match_created(user1, match.id)
         MMController.notify_match_created(user2, match.id)
+        print("notified", flush=True)
 
     @staticmethod
     def add_to_public_queue(user: int, sid: str):
         creating_match = False
-        redis_db.set("user for sid "+sid, user)
-        redis_db.set("sid for user "+str(user), sid)
         try:
             p = redis_db.pipeline()
             p.watch("public_queue")
@@ -55,6 +62,8 @@ class MMController:
                 cur_queue = cur_queue
                 print("cur_queue not empty", flush=True)
                 users_in_queue = cur_queue.decode('utf-8').split()
+                if str(user) in users_in_queue:
+                    raise UserAddedTwiceError
                 matched_user = int(users_in_queue[0])
                 users_in_queue.pop(0)
                 if len(users_in_queue) == 0:
@@ -62,6 +71,8 @@ class MMController:
                 else:
                     p.set(' '.join(users_in_queue))
             p.execute()
+            redis_db.set("user for sid " + sid, user)
+            redis_db.set("sid for user " + str(user), sid)
             if creating_match:
                 MMController.create_match(matched_user, user)
         except WatchError:
@@ -70,8 +81,10 @@ class MMController:
             race condition nel caso di aggiunte in
             contemporanea di più utenti
             """
-            # MMController.add_to_public_queue(user, sid)
+            MMController.add_to_public_queue(user, sid)
             print("watch error", flush=True)
+        except UserAddedTwiceError:
+            pass
 
     @staticmethod
     def remove_from_public_queue(user: int):
@@ -83,6 +96,7 @@ class MMController:
             print(queue)
             users_in_queue = queue.split()
             users_in_queue.remove(str(user))
+            p.multi()
             p.set("public_queue", ' '.join(users_in_queue))
             p.execute()
         except WatchError:

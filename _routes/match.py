@@ -8,6 +8,6 @@ Route usate per gestire una singola partita.
 """
 
 
-@match.route("/match/<match_id>", methods=['GET'])
+@match.route("/<match_id>", methods=['GET'])
 def get_match(match_id):
     return jsonify(models.Match.query.get(match_id).jsonify())

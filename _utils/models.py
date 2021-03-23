@@ -169,7 +169,5 @@ class Match(db.Base):
             "userid1": self.userid1,
             "userid2": self.userid2,
             "punti1": self.punti1,
-            "punti2": self.punti2,
-            "user1": self.user1,
-            "user2": self.user2
+            "punti2": self.punti2
         }

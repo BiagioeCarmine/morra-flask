@@ -162,3 +162,14 @@ class Match(db.Base):
 
     def incremento_punti2(self, punti2):
         self.punti2 += 1
+
+    def jsonify(self):
+        return {
+            "id": self.id,
+            "userid1": self.userid1,
+            "userid2": self.userid2,
+            "punti1": self.punti1,
+            "punti2": self.punti2,
+            "user1": self.user1,
+            "user2": self.user2
+        }

@@ -46,6 +46,30 @@ class MMNamespace(Namespace):
             return "bad token"
 
     def on_private_queue(self, data):
+        """
+        Risponde all'evento "private_queue" sul socket,
+        e aggiunge l'utente alla coda privata
+        :param data: JWT dell'utente
+        """
+        try:
+            payload = jwt.decode(data, jwt_key, algorithms=["HS256"])
+            print("got jwt ", flush=True)
+            print(payload, flush=True)
+            mmcontroller.MMController.add_to_private_queue(payload['id'], request.sid)
+            return "OK"
+        except:
+            return "bad token"
+
+    def on_play_with_friend(self, token, friend_id):
+        try:
+            payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
+            print("got jwt ", flush=True)
+            print(payload, flush=True)
+            mmcontroller.MMController.play_with_friends(payload['id'], request.sid, int(friend_id))
+            return "OK"
+        except:
+            return "bad request"
+
 
 socketio.on_namespace(MMNamespace()) # path: /socket.io
 

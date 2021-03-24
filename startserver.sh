@@ -1,4 +1,4 @@
 #!/bin/sh
 clear
 docker-compose build
-docker-compose up --renew-anon-volumes
+docker-compose up --renew-anon-volumes $1

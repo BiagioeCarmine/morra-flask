@@ -107,6 +107,12 @@ class MMController:
 
     @staticmethod
     def remove_sid(sid: str):
+        """
+        Rimuovere l'utente collegato dal sid specificato
+        dalla coda in cui è presente, se è presente
+        in una coda.
+        :param sid: SID da rimuovere dalla coda giusta
+        """
         MMController.remove_from_public_queue(redis_db.get("user for sid "+sid))
 
     @staticmethod

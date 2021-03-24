@@ -22,9 +22,20 @@ class MMNamespace(Namespace):
         pass
 
     def on_disconnect(self):
+        """
+        Funzione chiamata quando un utente si
+        disconnette dal socket. Deleghiamo
+        al MMController la responsabilità
+        di toglierlo dalla coda giusta.
+        """
         mmcontroller.MMController.remove_sid(request.sid)
 
     def on_queue(self, data):
+        """
+        Risponde all'evento "queue" sul socket, e aggiunge
+        l'utente alla coda pubblica
+        :param data: JWT dell'utente
+        """
         try:
             payload = jwt.decode(data, jwt_key, algorithms=["HS256"])
             print("got jwt ", flush=True)
@@ -34,6 +45,7 @@ class MMNamespace(Namespace):
         except:
             return "bad token"
 
+    def on_private_queue(self, data):
 
-socketio.on_namespace(MMNamespace())
+socketio.on_namespace(MMNamespace()) # path: /socket.io
 

@@ -1,11 +1,13 @@
 from flask import Flask
 import os
+from flask_cors import CORS
 
 from _utils import db, socketio, redis_db
 import _routes
 
 
 app = Flask(__name__)
+CORS(app)
 
 db.init_db()
 socketio.init_app(app, cors_allowed_origins="*")

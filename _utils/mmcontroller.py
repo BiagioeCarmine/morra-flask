@@ -2,6 +2,7 @@ from _utils import redis_db, db, models
 from redis import WatchError
 from _routes import matchmaking
 
+
 class UserAloneLikeADogError(Exception):
     pass
 
@@ -146,9 +147,9 @@ class MMController:
     @staticmethod
     def get_public_queue():
         pb = redis_db.smembers("public_queue")
-        return [models.User.query.get(int(id)) for user in pb]
+        return [models.User.query.get(int(user)) for user in pb]
 
     @staticmethod
     def get_private_queue():
         pr = redis_db.smembers("private_queue")
-        return [models.User.query.get(int(id)) for user in pr]
+        return [models.User.query.get(int(user)) for user in pr]

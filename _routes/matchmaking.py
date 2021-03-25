@@ -1,7 +1,7 @@
 import os
 
 import jwt
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from flask_socketio import emit, Namespace
 
 from _utils import mmcontroller, socketio, consts
@@ -9,11 +9,23 @@ from _utils import mmcontroller, socketio, consts
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
-# al momento nessuna route ma non si sa mai in futuro
+
 matchmaking = Blueprint('matchmaking', __name__, url_prefix="/mm")
 """
 Route e socket usati per creare una partita tra due utenti.
 """
+
+
+@matchmaking.route("/public_queue", methods=['GET'])
+def get_public_queue():
+    pb = mmcontroller.MMController.get_public_queue()
+    return jsonify([user.jsonify() for user in pb])
+
+
+@matchmaking.route("/private_queue", methods=["GET"])
+def get_private_queue():
+    pr = mmcontroller.MMController.get_public_queue()
+    return jsonify([user.jsonify() for user in pr])
 
 
 def communicate_match_id(sid: str, match: int):

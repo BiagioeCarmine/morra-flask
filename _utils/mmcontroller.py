@@ -113,7 +113,16 @@ class MMController:
         in una coda.
         :param sid: SID da rimuovere dalla coda giusta
         """
-        MMController.remove_from_public_queue(redis_db.get("user for sid "+sid))
+        try:
+            p = redis_db.pipeline()
+            p.watch("public_queue")
+            public_queue = redis.get()
+            users_in_queue = None if public_queue is None else public_queue.decode("utf-8").split()
+            if users_in_queue is not None and user in users_in_queue:
+            # togliamo dalla queue pubblica
+            else:
+            # vediamo la queue privata
+        except
 
     @staticmethod
     def add_to_private_queue(user: int, sid: str):

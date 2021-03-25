@@ -24,7 +24,7 @@ def get_public_queue():
 
 @matchmaking.route("/private_queue", methods=["GET"])
 def get_private_queue():
-    pr = mmcontroller.MMController.get_public_queue()
+    pr = mmcontroller.MMController.get_private_queue()
     return jsonify([user.jsonify() for user in pr])
 
 

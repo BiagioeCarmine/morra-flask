@@ -77,10 +77,10 @@ class MatchController:
             self.match.increment_2()
 
         match_over = False
-        if models.Match.punti1 == 12:
+        if self.match.punti1 == 12:
             self.match.user1.increment_wins()
             match_over = True
-        elif models.Match.punti2 == 12:
+        elif self.match.punti2 == 12:
             self.match.user2.increment_wins()
             match_over = True
 

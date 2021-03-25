@@ -16,7 +16,6 @@ altre cose che ci serviranno per l'app.
 """
 
 
-
 class User(db.Base):
     """
     Modello di utente della nostra app.
@@ -134,10 +133,10 @@ class User(db.Base):
                 return False
         return True
 
-    def incremento_vittorie(self, vittorie):
+    def incremento_vittorie(self):
         self.vittorie += 1
 
-    def incremento_sconfitte(self, sconfitte):
+    def incremento_sconfitte(self):
         self.sconfitte += 1
 
 
@@ -157,10 +156,10 @@ class Match(db.Base):
         self.userid1 = userid1
         self.userid2 = userid2
 
-    def incremento_punti1(self, punti1):
+    def incremento_punti1(self):
         self.punti1 += 1
 
-    def incremento_punti2(self, punti2):
+    def incremento_punti2(self):
         self.punti2 += 1
 
     def jsonify(self):

@@ -1,15 +1,18 @@
-from flask import Blueprint, request
-from flask_socketio import send, emit, Namespace
-from _utils import mmcontroller, socketio, consts
-import jwt
 import os
+
+import jwt
+from flask import Blueprint, request
+from flask_socketio import emit, Namespace
+
+from _utils import mmcontroller, socketio, consts
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
+# al momento nessuna route ma non si sa mai in futuro
 matchmaking = Blueprint('matchmaking', __name__, url_prefix="/mm")
 """
-Route usate per creare una partita tra due utenti.
+Route e socket usati per creare una partita tra due utenti.
 """
 
 
@@ -42,7 +45,7 @@ class MMNamespace(Namespace):
             print(payload, flush=True)
             mmcontroller.MMController.add_to_public_queue(payload["id"], request.sid)
             return "OK"
-        except:
+        except jwt.DecodeError:
             return "bad token"
 
     def on_private_queue(self, data):
@@ -57,7 +60,7 @@ class MMNamespace(Namespace):
             print(payload, flush=True)
             mmcontroller.MMController.add_to_private_queue(payload['id'], request.sid)
             return "OK"
-        except:
+        except jwt.DecodeError:
             return "bad token"
 
     def on_play_with_friend(self, token, friend_id):
@@ -67,9 +70,10 @@ class MMNamespace(Namespace):
             print(payload, flush=True)
             mmcontroller.MMController.play_with_friends(payload['id'], request.sid, int(friend_id))
             return "OK"
-        except:
-            return "bad request"
+        except jwt.DecodeError:
+            return "bad token"
+        except mmcontroller.UserAloneLikeADogError:
+            return "friend not online"
 
 
-socketio.on_namespace(MMNamespace()) # path: /socket.io
-
+socketio.on_namespace(MMNamespace())  # path: /socket.io

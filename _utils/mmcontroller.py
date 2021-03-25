@@ -2,11 +2,6 @@ from _utils import redis_db, db, models
 from redis import WatchError
 from _routes import matchmaking
 
-
-class UserAddedTwiceError(Exception):
-    pass
-
-
 class UserAloneLikeADogError(Exception):
     pass
 
@@ -26,6 +21,13 @@ class MMController:
     """
     @staticmethod
     def notify_match_created(user: int, match: int):
+        """
+        Chiama la funzione corrispondente del gestore del
+        socket per avvisare un utente che è stata cretata
+        una partita in cui giocherà.
+        :param user: ID dell'utente da avvisare
+        :param match: ID della partita da comunicare
+        """
         sid = redis_db.get("sid for user "+str(user)).decode("utf-8")
         print("avvisando il sid")
         print(sid)
@@ -34,10 +36,9 @@ class MMController:
     @staticmethod
     def create_match(user1: int, user2: int):
         """
-        crea Match in DB e notifica gli utenti che giocheranno insieme
-        :param user1:
-        :param user2:
-        :return:
+        Crea Match in DB e notifica gli utenti che giocheranno insieme.
+        :param user1: ID di uno degli utenti
+        :param user2: ID dell'altro utente
         """
         print("creating match between {} and {}".format(user1, user2), flush=True)
         match = models.Match(user1, user2)
@@ -52,32 +53,28 @@ class MMController:
 
     @staticmethod
     def add_to_public_queue(user: int, sid: str):
-        creating_match = False
+        """
+        Aggiungiamo l'utente alla coda pubblica
+        :param user: ID dell'utente da aggiungere
+        :param sid: Session ID del socket a cui l'utente è collegato
+        """
         try:
             p = redis_db.pipeline()
             p.watch("public_queue")
-            cur_queue = p.get("public_queue")
-            p.multi()
-            print(cur_queue, flush=True)
-            if cur_queue is None:
-                p.set("public_queue", str(user) + " ")
-            else:
-                creating_match = True
-                print("cur_queue not empty", flush=True)
-                users_in_queue = cur_queue.decode('utf-8').split()
-                if str(user) in users_in_queue:
-                    raise UserAddedTwiceError
-                matched_user = int(users_in_queue[0])
-                users_in_queue.pop(0)
-                if len(users_in_queue) == 0:
-                    p.delete("public_queue")
-                else:
-                    p.set(' '.join(users_in_queue))
-            p.execute()
+            if p.sismember("public_queue", str(user)):
+                return  # utente già in coda
             redis_db.set("user for sid " + sid, user)
             redis_db.set("sid for user " + str(user), sid)
-            if creating_match:
-                MMController.create_match(matched_user, user)
+            queue_length = p.scard("public_queue")
+            p.multi()
+            if queue_length != 0:
+                # c'è un altro utente in coda, creiamo la partita!
+                matched_user = p.spop("public_queue").decode("utf-8")  # prendiamo un utente a caso dalla coda
+                MMController.create_match(user, int(matched_user))
+            else:
+                # non c'è nessuno in coda, aggiungiamo l'utente alla coda
+                p.sadd("public_queue", str(user))
+            p.execute()
         except WatchError:
             """
             tutta sta cosa di watch serve per evitare
@@ -86,24 +83,14 @@ class MMController:
             """
             MMController.add_to_public_queue(user, sid)
             print("watch error", flush=True)
-        except UserAddedTwiceError:
-            pass
 
     @staticmethod
     def remove_from_public_queue(user: int):
-        try:
-            p = redis_db.pipeline()
-
-            p.watch("public_queue")
-            queue = p.get("public_queue").decode("utf-8")
-            print(queue)
-            users_in_queue = queue.split()
-            users_in_queue.remove(str(user))
-            p.multi()
-            p.set("public_queue", ' '.join(users_in_queue))
-            p.execute()
-        except WatchError:
-            MMController.remove_from_public_queue(user)
+        """
+        Rimuoviamo l'utente dalla coda pubblica
+        :param user: ID dell'utente
+        """
+        redis_db.srem("public_queue", str(user))
 
     @staticmethod
     def remove_sid(sid: str):
@@ -112,6 +99,15 @@ class MMController:
         dalla coda in cui è presente, se è presente
         in una coda.
         :param sid: SID da rimuovere dalla coda giusta
+        """
+
+        """
+        NOTA: ovviamente vedi che sta cosa si può semplificare tantissimo
+        se vedi in particolare come si usa redis_db.srem(key, value)
+        https://redis.io/commands/srem
+        
+        Tutti i comandi per i set iniziano per s e sono documentati
+        qua https://redis.io/commands#set
         """
         try:
             p = redis_db.pipeline()
@@ -126,30 +122,38 @@ class MMController:
 
     @staticmethod
     def add_to_private_queue(user: int, sid: str):
-        redis_db.append("private_queue", str(user) + " ")
+        """
+        Aggiungere un utente alla coda privata.
+        :param user: ID dell'utente da aggiungere
+        :param sid: Session ID del socket a cui l'utente è connesso
+        """
+        redis_db.sadd("private_queue", str(user))
         redis_db.set("user for sid " + sid, user)
         redis_db.set("sid for user " + str(user), sid)
 
     @staticmethod
     def play_with_friends(user: int, sid: str, friend: int):
+        """
+        Far giocare un utente con un utente specifico
+        se l'utente richiesto è nella coda privata.
+        :param user: ID dell'utente che effettua la richiesta
+        :param sid: Sesion ID del socekt a cui l'utente richiedente è connesso
+        :param friend: ID dell'utente con cui l'utente richiedente vuole giocare
+        """
+        friend_str = str(friend)
         try:
             p = redis_db.pipeline()
             p.watch("private_queue")
-            cur_queue = p.get("private_queue")
-            if cur_queue is None:
+            if not p.sismember("private_queue", friend_str):
+                # amico non in coda: avviseremo!
                 raise UserAloneLikeADogError
+            # l'amico è in coda: togliamolo e creiamo la partita!
             p.multi()
-            users_in_queue = cur_queue.decode('utf-8').split()
-            if not str(friend) in users_in_queue:
-                raise UserAloneLikeADogError
+            p.srem("private_queue", friend_str)
+            p.execute()
             redis_db.set("user for sid " + sid, user)
             redis_db.set("sid for user " + str(user), sid)
-            users_in_queue.remove(str(friend))
-            p.set("private_queue", ' '.join(users_in_queue))
-            p.execute()
-            MMController.create_match(friend, user)
-        except UserAloneLikeADogError:
-            pass
+            MMController.create_match(user, friend)
         except WatchError:
             MMController.play_with_friends(user, sid,  friend)
             print("watch error", flush=True)

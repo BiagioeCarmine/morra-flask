@@ -33,6 +33,7 @@ def get_logged_in_status():
     except AttributeError:
         return Response("missing Authorization header", status=400)
 
+
 @users.route("/user/<user_id>", methods=['GET'])
 def get_user(user_id):
     return jsonify(models.User.query.get(user_id).jsonify())
@@ -42,6 +43,10 @@ def get_user(user_id):
 def signup():
     if not request.form:
         return Response("missing form", status=400)
+    if request.form.get("username") is None:
+        return Response("missing username", status=400)
+    if request.form.get("password") is None:
+        return Response("missing password", status=400)
     if not models.User.validate_username(request.form['username']):
         return Response("bad username", status=400)
     if not models.User.validate_password(request.form['password']):
@@ -56,6 +61,16 @@ def signup():
 
 @users.route("/login", methods=['POST'])
 def login():
+    if not request.form:
+        return Response("missing form", status=400)
+    if request.form.get("username") is None:
+        return Response("missing username", status=400)
+    if request.form.get("password") is None:
+        return Response("missing password", status=400)
+    if not models.User.validate_username(request.form['username']):
+        return Response("bad username", status=400)
+    if not models.User.validate_password(request.form['password']):
+        return Response("bad password", status=400)
     try:
         user = models.User.query.filter(models.User.username == request.form['username']).first()
         check = user.check_password(request.form['password'].encode("utf-8"))

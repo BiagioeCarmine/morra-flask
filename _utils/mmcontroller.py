@@ -1,4 +1,5 @@
 import datetime
+import eventlet
 
 from _utils import redis_db, db, models
 from redis import WatchError
@@ -44,7 +45,8 @@ class MMController:
         :param user2: ID dell'altro utente
         """
         print("creating match between {} and {}".format(user1, user2), flush=True)
-        match = models.Match(user1, user2, datetime.now()+datetime.timedelta(seconds=10))  # fra 10 sec inizia la partita
+        # fra 10 sec inizia la partita
+        match = models.Match(user1, user2, datetime.now()+datetime.timedelta(seconds=10))
         print(match, flush=True)
         db.session.add(match)
         db.session.commit()
@@ -53,6 +55,7 @@ class MMController:
         MMController.notify_match_created(user1, match.id)
         MMController.notify_match_created(user2, match.id)
         print("notified", flush=True)
+        eventlet.spawn()
 
     @staticmethod
     def add_to_public_queue(user: int, sid: str):

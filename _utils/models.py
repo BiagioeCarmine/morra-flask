@@ -133,10 +133,10 @@ class User(db.Base):
                 return False
         return True
 
-    def incremento_vittorie(self):
+    def increment_wins(self):
         self.vittorie += 1
 
-    def incremento_sconfitte(self):
+    def increment_losses(self):
         self.sconfitte += 1
 
 
@@ -158,10 +158,10 @@ class Match(db.Base):
         self.userid1 = userid1
         self.userid2 = userid2
 
-    def incremento_punti1(self):
+    def increment_1(self):
         self.punti1 += 1
 
-    def incremento_punti2(self):
+    def increment_2(self):
         self.punti2 += 1
 
     def jsonify(self):

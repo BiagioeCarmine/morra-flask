@@ -20,6 +20,19 @@ def get_users():
     return jsonify([user.jsonify() for user in result])
 
 
+@users.route("/verify", methods=['GET'])
+def get_logged_in_status():
+    try:
+        token = request.headers.get("Authorization").split("Bearer ")[1]
+        payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
+        return "OK"
+    except jwt.DecodeError:
+        return Response("bad token", status=401)
+    except IndexError:
+        return Response("bad Authorization string", status=400)
+    except AttributeError:
+        return Response("missing Authorization header", status=400)
+
 @users.route("/user/<user_id>", methods=['GET'])
 def get_user(user_id):
     return jsonify(models.User.query.get(user_id).jsonify())

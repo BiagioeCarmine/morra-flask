@@ -1,5 +1,5 @@
 from bcrypt import hashpw, gensalt, checkpw
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from _utils import db, consts
 
@@ -145,14 +145,16 @@ class Match(db.Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     userid1 = Column(Integer, ForeignKey('Users.id'), nullable=False)
     userid2 = Column(Integer, ForeignKey('Users.id'), nullable=False)
-    punti1 = Column(Integer)
-    punti2 = Column(Integer)
+    punti1 = Column(Integer, nullable=False)
+    punti2 = Column(Integer, nullable=False)
+    start_time = Column(DateTime, nullable=False)
     user1 = relationship("User", foreign_keys=userid1)
     user2 = relationship("User", foreign_keys=userid2)
 
-    def __init__(self, userid1, userid2):
+    def __init__(self, userid1, userid2, start_time):
         self.punti1 = 0
         self.punti2 = 0
+        self.start_time = start_time
         self.userid1 = userid1
         self.userid2 = userid2
 

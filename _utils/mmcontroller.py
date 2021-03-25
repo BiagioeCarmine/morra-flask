@@ -1,3 +1,5 @@
+import datetime
+
 from _utils import redis_db, db, models
 from redis import WatchError
 from _routes import matchmaking
@@ -42,7 +44,7 @@ class MMController:
         :param user2: ID dell'altro utente
         """
         print("creating match between {} and {}".format(user1, user2), flush=True)
-        match = models.Match(user1, user2)
+        match = models.Match(user1, user2, datetime.now()+datetime.timedelta(seconds=10))  # fra 10 sec inizia la partita
         print(match, flush=True)
         db.session.add(match)
         db.session.commit()

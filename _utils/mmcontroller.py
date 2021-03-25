@@ -85,14 +85,6 @@ class MMController:
             print("watch error", flush=True)
 
     @staticmethod
-    def remove_from_public_queue(user: int):
-        """
-        Rimuoviamo l'utente dalla coda pubblica
-        :param user: ID dell'utente
-        """
-        redis_db.srem("public_queue", str(user))
-
-    @staticmethod
     def remove_sid(sid: str):
         """
         Rimuovere l'utente collegato dal sid specificato
@@ -109,16 +101,9 @@ class MMController:
         Tutti i comandi per i set iniziano per s e sono documentati
         qua https://redis.io/commands#set
         """
-        try:
-            p = redis_db.pipeline()
-            p.watch("public_queue")
-            public_queue = redis.get()
-            users_in_queue = None if public_queue is None else public_queue.decode("utf-8").split()
-            if users_in_queue is not None and user in users_in_queue:
-            # togliamo dalla queue pubblica
-            else:
-            # vediamo la queue privata
-        except
+        user = redis_db.get("user for sid " + sid).decode("utf-8")
+        redis_db.srem("public_queue", user)
+        redis_db.srem("private_queue", user)
 
     @staticmethod
     def add_to_private_queue(user: int, sid: str):
@@ -157,3 +142,13 @@ class MMController:
         except WatchError:
             MMController.play_with_friends(user, sid,  friend)
             print("watch error", flush=True)
+
+    @staticmethod
+    def get_public_queue():
+        pb = redis_db.smembers("public_queue")
+        return [models.User.query.get(int(id)) for user in pb]
+
+    @staticmethod
+    def get_private_queue():
+        pr = redis_db.smembers("private_queue")
+        return [models.User.query.get(int(id)) for user in pr]

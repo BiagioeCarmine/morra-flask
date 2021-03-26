@@ -89,15 +89,6 @@ def remove_sid(sid: str):
     in una coda.
     :param sid: SID da rimuovere dalla coda giusta
     """
-
-    """
-    NOTA: ovviamente vedi che sta cosa si può semplificare tantissimo
-    se vedi in particolare come si usa redis_db.srem(key, value)
-    https://redis.io/commands/srem
-    
-    Tutti i comandi per i set iniziano per s e sono documentati
-    qua https://redis.io/commands#set
-    """
     user = redis.redis_db.get("user for sid " + sid).decode("utf-8")
     redis.redis_db.srem("public_queue", user)
     redis.redis_db.srem("private_queue", user)

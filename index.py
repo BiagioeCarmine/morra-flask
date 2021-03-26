@@ -13,7 +13,7 @@ db.init_db()
 socketio.init_app(app, cors_allowed_origins="*")
 
 app.register_blueprint(_routes.match)
-app.register_blueprint(_routes.matchmaking.matchmaking)
+app.register_blueprint(_routes.matchmaking.mm)
 app.register_blueprint(_routes.users)
 
 if os.getenv("JWT_KEY") is None:

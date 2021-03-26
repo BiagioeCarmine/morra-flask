@@ -10,19 +10,19 @@ key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
 
-matchmaking = Blueprint('matchmaking', __name__, url_prefix="/mm")
+mm = Blueprint('mm', __name__, url_prefix="/mm")
 """
 Route e socket usati per creare una partita tra due utenti.
 """
 
 
-@matchmaking.route("/public_queue", methods=['GET'])
+@mm.route("/public_queue", methods=['GET'])
 def get_public_queue():
     pb = matchmaking.get_public_queue()
     return jsonify([user.jsonify() for user in pb])
 
 
-@matchmaking.route("/private_queue", methods=["GET"])
+@mm.route("/private_queue", methods=["GET"])
 def get_private_queue():
     pr = matchmaking.get_private_queue()
     return jsonify([user.jsonify() for user in pr])

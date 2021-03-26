@@ -9,7 +9,7 @@ Route usate per gestire una singola partita.
 
 
 @match.route("/", methods=['GET'])
-def get_matchs():
+def get_matches():
     result = models.Match.query.all()
     return jsonify([m.jsonify() for m in result])
 

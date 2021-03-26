@@ -32,7 +32,7 @@ def create_match(user1: int, user2: int):
     """
     print("creating match between {} and {}".format(user1, user2), flush=True)
     # fra 10 sec inizia la partita
-    match = models.Match(user1, user2, datetime.datetime.now()+datetime.timedelta(seconds=10))
+    match = models.Match(user1, user2, datetime.datetime.now()+datetime.timedelta(seconds=15))
     print(match, flush=True)
     db.session.add(match)
     db.session.commit()
@@ -41,7 +41,7 @@ def create_match(user1: int, user2: int):
     notify_match_created(user1, match.id)
     notify_match_created(user2, match.id)
     print("notified", flush=True)
-    eventlet.spawn(matchcontroller.MatchController(match))
+    eventlet.spawn(matchcontroller.MatchController(match).start)
 
 
 def add_to_public_queue(user: int, sid: str):
@@ -51,6 +51,7 @@ def add_to_public_queue(user: int, sid: str):
     :param sid: Session ID del socket a cui l'utente è collegato
     """
     try:
+        print("aggiungendo a public queue", flush=True)
         p = redis.redis_db.pipeline()
         p.watch("public_queue")
         if p.sismember("public_queue", str(user)):
@@ -60,21 +61,25 @@ def add_to_public_queue(user: int, sid: str):
         queue_length = p.scard("public_queue")
         p.multi()
         if queue_length != 0:
+            print("lunghezza coda diversa da 0", flush=True)
             # c'è un altro utente in coda, creiamo la partita!
-            matched_user = p.spop("public_queue").decode("utf-8")  # prendiamo un utente a caso dalla coda
+            p.spop("public_queue")  # prendiamo un utente a caso dalla coda
+            matched_user = p.execute()[0].decode("utf-8")
+            print("stiamo per creare la partita", flush=True)
             create_match(user, int(matched_user))
         else:
             # non c'è nessuno in coda, aggiungiamo l'utente alla coda
             p.sadd("public_queue", str(user))
-        p.execute()
+            p.execute()
+
     except WatchError:
         """
         tutta sta cosa di watch serve per evitare
         race condition nel caso di aggiunte in
         contemporanea di più utenti
         """
-        add_to_public_queue(user, sid)
         print("watch error", flush=True)
+        add_to_public_queue(user, sid)
 
 
 def remove_sid(sid: str):

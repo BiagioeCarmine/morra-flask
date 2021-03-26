@@ -25,11 +25,14 @@ class MatchController:
     ricordarsi di considerare il caso in cui uno o entrambi
     non hanno mandato un cazzo.
     """
-    def communicate_end_of_match(self):
-        """
-        Avvisa che la partita è finita
-        """
-        pass
+    def __init__(self, match: models.Match):
+        self.match = match
+        print("creata partita", flush=True)
+
+    def start(self):
+        eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
+        print("iniziata partita", flush=True)
+        self.start_match()
 
     def next_round(self):
         """
@@ -42,14 +45,18 @@ class MatchController:
         self.play_round()
         pass
 
-    def get_player_1_move(self) -> Move:
+    def get_player_1_move(self):
         """
         Ottieni la mossa effettuata dal giocatore 1
         per il turno corrente
         TODO: implement this
         """
-        return Move(int(redis.redis_db.hget("match {} player 1".format(self.match.id), "hand").decode("utf-8")),
-                    int(redis.redis_db.hget("match {} player 1".format(self.match.id), "prediction").decode("utf-8")))
+        hand = redis.redis_db.hget("match {} player 1".format(self.match.id), "hand")
+        prediction = redis.redis_db.hget("match {} player 1".format(self.match.id), "prediction")
+        if hand is None or prediction is None:
+            return None
+        return Move(int(hand.decode("utf-8")),
+                    int(hand.decode("utf-8")))
 
     def get_player_2_move(self) -> Move:
         """
@@ -57,11 +64,12 @@ class MatchController:
         per il turno corrente
         TODO: implement this
         """
-        return Move(int(redis.redis_db.hget("match {} player 1".format(self.match.id), "hand").decode("utf-8")),
-                    int(redis.redis_db.hget("match {} player 1".format(self.match.id), "prediction").decode("utf-8")))
-
-    def __init__(self, match: models.Match):
-        self.match = match
+        hand = redis.redis_db.hget("match {} player 2".format(self.match.id), "hand")
+        prediction = redis.redis_db.hget("match {} player 2".format(self.match.id), "prediction")
+        if hand is None or prediction is None:
+            return None
+        return Move(int(hand.decode("utf-8")),
+                    int(hand.decode("utf-8")))
 
     def start_match(self):
         """
@@ -74,11 +82,15 @@ class MatchController:
         move1 = self.get_player_1_move()
         move2 = self.get_player_2_move()
 
+        if move1 is None and move2 is None:
+            pass
+            # TODO:come lo gestiamo?
+
         result = move1.hand + move2.hand
 
-        if move1.prediction == result and move2.prediction != result:
+        if move2 is None or (move1.prediction == result and move2.prediction != result):
             self.match.increment_1()
-        if move2.prediction == result and move1.prediction != result:
+        if move1 is None or (move2.prediction == result and move1.prediction != result):
             self.match.increment_2()
 
         match_over = False
@@ -92,6 +104,7 @@ class MatchController:
         db.session.commit()
 
         if match_over:
-            return self.communicate_end_of_match()
+            # TODO: che si fa?
+            pass
 
         self.next_round()

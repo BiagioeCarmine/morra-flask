@@ -1,5 +1,6 @@
 import os
 
+import eventlet
 import jwt
 from flask import Blueprint, request, jsonify
 from flask_socketio import emit, Namespace

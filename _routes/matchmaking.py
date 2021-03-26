@@ -89,4 +89,4 @@ class MMNamespace(Namespace):
             return "friend not online"
 
 
-socketio.on_namespace(MMNamespace())  # path: /socket.io
+socketio.on_namespace(MMNamespace('/mm'))  # path: /socket.io

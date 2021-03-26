@@ -4,7 +4,7 @@ import jwt
 from flask import Blueprint, request, jsonify
 from flask_socketio import emit, Namespace
 
-from _utils import mmcontroller, socketio, consts
+from _utils import matchmaking, socketio, consts
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
@@ -18,13 +18,13 @@ Route e socket usati per creare una partita tra due utenti.
 
 @matchmaking.route("/public_queue", methods=['GET'])
 def get_public_queue():
-    pb = mmcontroller.MMController.get_public_queue()
+    pb = matchmaking.get_public_queue()
     return jsonify([user.jsonify() for user in pb])
 
 
 @matchmaking.route("/private_queue", methods=["GET"])
 def get_private_queue():
-    pr = mmcontroller.MMController.get_private_queue()
+    pr = matchmaking.get_private_queue()
     return jsonify([user.jsonify() for user in pr])
 
 
@@ -40,10 +40,10 @@ class MMNamespace(Namespace):
         """
         Funzione chiamata quando un utente si
         disconnette dal socket. Deleghiamo
-        al MMController la responsabilità
+        alla funzione in _utils la responsabilità
         di toglierlo dalla coda giusta.
         """
-        mmcontroller.MMController.remove_sid(request.sid)
+        matchmaking.remove_sid(request.sid)
 
     def on_queue(self, data):
         """
@@ -55,7 +55,7 @@ class MMNamespace(Namespace):
             payload = jwt.decode(data, jwt_key, algorithms=["HS256"])
             print("got jwt ", flush=True)
             print(payload, flush=True)
-            mmcontroller.MMController.add_to_public_queue(payload["id"], request.sid)
+            matchmaking.add_to_public_queue(payload["id"], request.sid)
             return "OK"
         except jwt.DecodeError:
             return "bad token"
@@ -70,7 +70,7 @@ class MMNamespace(Namespace):
             payload = jwt.decode(data, jwt_key, algorithms=["HS256"])
             print("got jwt ", flush=True)
             print(payload, flush=True)
-            mmcontroller.MMController.add_to_private_queue(payload['id'], request.sid)
+            matchmaking.add_to_private_queue(payload['id'], request.sid)
             return "OK"
         except jwt.DecodeError:
             return "bad token"
@@ -80,11 +80,11 @@ class MMNamespace(Namespace):
             payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
             print("got jwt ", flush=True)
             print(payload, flush=True)
-            mmcontroller.MMController.play_with_friends(payload['id'], request.sid, int(friend_id))
+            matchmaking.play_with_friends(payload['id'], request.sid, int(friend_id))
             return "OK"
         except jwt.DecodeError:
             return "bad token"
-        except mmcontroller.UserAloneLikeADogError:
+        except matchmaking.UserAloneLikeADogError:
             return "friend not online"
 
 

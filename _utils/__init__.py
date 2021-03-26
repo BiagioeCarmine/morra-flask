@@ -6,3 +6,4 @@ import _utils.models
 from _utils.redis import redis_db
 from _utils.socketio import socketio
 import _utils.matchcontroller
+import _utils.matchmaking

@@ -1,7 +1,7 @@
 import datetime
 import eventlet
 
-from _utils import redis_db, db, models
+from _utils import redis_db, db, models, matchcontroller
 from redis import WatchError
 from _routes import matchmaking
 
@@ -41,7 +41,7 @@ def create_match(user1: int, user2: int):
     notify_match_created(user1, match.id)
     notify_match_created(user2, match.id)
     print("notified", flush=True)
-    eventlet.spawn()
+    eventlet.spawn(matchcontroller.MatchController(match))
 
 
 def add_to_public_queue(user: int, sid: str):

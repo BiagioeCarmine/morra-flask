@@ -46,7 +46,7 @@ class MMController:
         """
         print("creating match between {} and {}".format(user1, user2), flush=True)
         # fra 10 sec inizia la partita
-        match = models.Match(user1, user2, datetime.now()+datetime.timedelta(seconds=10))
+        match = models.Match(user1, user2, datetime.datetime.now()+datetime.timedelta(seconds=10))
         print(match, flush=True)
         db.session.add(match)
         db.session.commit()

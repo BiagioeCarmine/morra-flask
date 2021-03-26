@@ -55,7 +55,7 @@ class MatchController:
 
     def __init__(self, match_id: int):
         self.match = models.Match.query.get(match_id)
-        eventlet.sleep((self.match.start_time - datetime.now()).seconds)
+        eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
         self.start_match()
 
     def start_match(self):

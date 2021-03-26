@@ -34,7 +34,12 @@ class MatchController:
     def next_round(self):
         """
         Move to the next round
+
         """
+        redis_db.delete("match {} player 1".format(self.match.id))
+        redis_db.delete("match {} player 2".format(self.match.id))
+        eventlet.sleep(10)
+        self.play_round()
         pass
 
     def get_player_1_move(self) -> Move:
@@ -43,7 +48,8 @@ class MatchController:
         per il turno corrente
         TODO: implement this
         """
-        pass
+        return Move(int(redis_db.hget("match {} player 1".format(self.match.id), "hand").decode("utf-8")),
+                    int(redis_db.hget("match {} player 1".format(self.match.id), "prediction").decode("utf-8")))
 
     def get_player_2_move(self) -> Move:
         """
@@ -53,7 +59,7 @@ class MatchController:
         """
         pass
 
-    def __init__(self, match: int):
+    def __init__(self, match: models.Match):
         self.match = match
 
     def start_match(self):

@@ -2,7 +2,7 @@ from flask import Flask
 import os
 from flask_cors import CORS
 
-from _utils import db, socketio, redis_db
+from _utils import db, socketio, redis
 import _routes
 
 

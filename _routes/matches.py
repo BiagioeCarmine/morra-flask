@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from _utils import models, socketio, match
 from flask_socketio import Namespace
+import jwt
 
 matches = Blueprint('matches', __name__, url_prefix="/matches")
 
@@ -35,12 +36,12 @@ class MatchNamespace(Namespace):
         # emit("the other user disconnected", room=altroutente)
         pass
 
-    def on_move(self, hand, prediction):
+    def on_move(self, token, hand, prediction):
         """
         Risponde all'evento "move" sul socket,
-        registra la mossa.
+        decodifica il token, prende l'user id
+        e registra la mossa usando match.set_move()
         """
-
         return "CIAO"
 
 

@@ -1,4 +1,4 @@
-
+# gitignore del Python di github con aggiunte nostre specifiche alla fine
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,21 +1,21 @@
 from flask import Blueprint, jsonify
-from _utils import models, socketio
+from _utils import models, socketio, match
 from flask_socketio import Namespace
 
-match = Blueprint('match', __name__, url_prefix="/match")
+matches = Blueprint('matches', __name__, url_prefix="/matches")
 
 """
 Route usate per gestire una singola partita.
 """
 
 
-@match.route("/", methods=['GET'])
+@matches.route("/", methods=['GET'])
 def get_matches():
     result = models.Match.query.all()
     return jsonify([m.jsonify() for m in result])
 
 
-@match.route("/<match_id>", methods=['GET'])
+@matches.route("/<match_id>", methods=['GET'])
 def get_match(match_id):
     return jsonify(models.Match.query.get(match_id).jsonify())
 
@@ -40,7 +40,8 @@ class MatchNamespace(Namespace):
         Risponde all'evento "move" sul socket,
         registra la mossa.
         """
+
         return "CIAO"
 
 
-socketio.on_namespace(MatchNamespace('/match'))
+socketio.on_namespace(MatchNamespace('/matches'))

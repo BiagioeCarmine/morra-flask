@@ -1,3 +1,3 @@
 import _routes.matchmaking
-from _routes.match import match
+from _routes.matches import matches
 from _routes.users import users

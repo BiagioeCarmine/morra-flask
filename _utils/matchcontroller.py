@@ -56,7 +56,7 @@ class MatchController:
         if hand is None or prediction is None:
             return None
         return Move(int(hand.decode("utf-8")),
-                    int(hand.decode("utf-8")))
+                    int(prediction.decode("utf-8")))
 
     def get_player_2_move(self) -> Move:
         """
@@ -69,7 +69,7 @@ class MatchController:
         if hand is None or prediction is None:
             return None
         return Move(int(hand.decode("utf-8")),
-                    int(hand.decode("utf-8")))
+                    int(prediction.decode("utf-8")))
 
     def start_match(self):
         """

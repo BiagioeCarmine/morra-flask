@@ -1,5 +1,5 @@
 from bcrypt import hashpw, gensalt, checkpw
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from _utils import db, consts
 
@@ -56,6 +56,7 @@ class User(db.Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(30), unique=True)
     password = Column(String(60))
+    admin = Column(Boolean)
     vittorie = Column(Integer)
     sconfitte = Column(Integer)
     punteggio = Column(Integer)
@@ -71,6 +72,7 @@ class User(db.Base):
         self.vittorie = 0
         self.sconfitte = 0
         self.punteggio = 0
+        self.admin = False
 
     def check_password(self, password):
         """

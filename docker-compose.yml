@@ -1,13 +1,20 @@
 version: "3.9"
 services:
   web:
+    depends_on:
+      - mysql
+      - redis
     build:
       context: .
       network: host
-    entrypoint:
-      - python
-      - index.py
+    env_file:
+      testing_vars.env
+    command: ["./wait-for", "mysql:3306", "--", "python", "index.py"]
     ports:
       - "5000:5000"
   redis:
     image: "redis:alpine"
+  mysql:
+    env_file:
+      testing_vars.env
+    image: "mysql"

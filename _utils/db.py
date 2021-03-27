@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from os import getenv
 
 """
 Veloce guida a SQLAlchemy.
@@ -55,8 +56,12 @@ In pratica è molto semplice. Il resto della roba
 in questo file serve per far funzionare tutto.
 """
 
+db_host = getenv("MYSQL_HOST")
+db_database = getenv("MYSQL_DATABASE")
+db_user = getenv("MYSQL_USER")
+db_password = getenv("MYSQL_PASSWORD")
 
-engine = create_engine('sqlite:///test.db')
+engine = create_engine('mysql+mysqlconnector://{}:{}@{}/{}'.format(db_user, db_password, db_host, db_database))
 
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 

@@ -51,4 +51,4 @@ class MatchNamespace(Namespace):
         return "CIAO"
 
 
-socketio.on_namespace(MatchNamespace('/matches'))
+socketio.socketio.on_namespace(MatchNamespace('/matches'))

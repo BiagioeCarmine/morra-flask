@@ -8,7 +8,6 @@ from os import getenv
 from sys import exit
 
 REQUIRED_ENV_VARS = [
-    "MYSQL_ROOT_PASSWORD",
     "MYSQL_DATABASE",
     "MYSQL_USER",
     "MYSQL_PASSWORD",
@@ -30,7 +29,7 @@ app = Flask(__name__)
 CORS(app)
 
 db.init_db()
-socketio.init_app(app, cors_allowed_origins="*")
+socketio.socketio.init_app(app, cors_allowed_origins="*")
 
 app.register_blueprint(_routes.matches.matches)
 app.register_blueprint(_routes.matchmaking.mm)
@@ -48,4 +47,4 @@ def test_root():
 print("Avvio server morra")
 
 if __name__ == "__main__":
-    socketio.run(app, host='0.0.0.0', port=5000, use_reloader=False)
+    socketio.socketio.run(app, host='0.0.0.0', port=5000, use_reloader=False)

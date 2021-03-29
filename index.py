@@ -32,9 +32,9 @@ CORS(app)
 db.init_db()
 socketio.init_app(app, cors_allowed_origins="*")
 
-app.register_blueprint(_routes.matches)
+app.register_blueprint(_routes.matches.matches)
 app.register_blueprint(_routes.matchmaking.mm)
-app.register_blueprint(_routes.users)
+app.register_blueprint(_routes.users.users)
 
 if os.getenv("JWT_KEY") is None:
     print("Non è stata impostata una chiave per firmare i JWT, quindi verrà usata quella di test")

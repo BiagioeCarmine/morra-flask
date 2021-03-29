@@ -3,12 +3,18 @@ import eventlet
 import datetime
 
 
+class BadMoveError(Exception):
+    pass
+
+
 class Move:
     def __init__(self, hand: int, prediction: int):
         """
         :param hand: 1<=5
         :param prediction: 2<=10
         """
+        if hand < 1 or hand > 5 or prediction < 2 or prediction > 10:
+            raise BadMoveError
         self.hand = hand
         self.prediction = prediction
 
@@ -27,6 +33,7 @@ class MatchController:
     """
     def __init__(self, match: models.Match):
         self.match = match
+        self.skipped_rounds = 0
         print("creata partita", flush=True)
 
     def start(self):
@@ -78,18 +85,26 @@ class MatchController:
         """
         self.play_round()
 
+    def end_match(self):
+        """
+        Fai finire la partita (suggerimento: chiama match.notify_match_over()
+        TODO: fai sta cosa Zacc
+        """
+
     def play_round(self):
         move1 = self.get_player_1_move()
         move2 = self.get_player_2_move()
 
         if move1 is None and move2 is None:
-            # TODO:come lo gestiamo?
-            return
+            if self.skipped_rounds == 0:
+                return self.next_round()
+            else:
+                return self.end_match()
 
         if move1 is None:
-            
+            self.match.increment_2()
         elif move2 is None:
-
+            self.match.increment_1()
         else:
             result = move1.hand + move2.hand
 
@@ -109,7 +124,7 @@ class MatchController:
         db.session.commit()
 
         if match_over:
-            # TODO: che si fa?
+            self.end_match()
             pass
 
         self.next_round()

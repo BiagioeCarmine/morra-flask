@@ -8,7 +8,6 @@ jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
 users = Blueprint('users', __name__, url_prefix="/users")
 
-
 """
 Route usate per gestire gli utenti.
 """
@@ -71,11 +70,11 @@ def login():
         return Response("bad username", status=400)
     if not models.User.validate_password(request.form['password']):
         return Response("bad password", status=400)
-    try:
-        user = models.User.query.filter(models.User.username == request.form['username']).first()
-        check = user.check_password(request.form['password'].encode("utf-8"))
-        if not check:
-            raise Exception
-        return jwt.encode({"id": user.id}, jwt_key, algorithm="HS256")
-    except:
+
+    user = models.User.query.filter(models.User.username == request.form['username'].encode("utf-8")).first()
+
+    if user is None or not user.check_password(request.form['password']):
+        print("wrong password", flush=True)
         return Response("bad credentials", status=401)
+    return jwt.encode({"id": user.id}, jwt_key, algorithm="HS256")
+

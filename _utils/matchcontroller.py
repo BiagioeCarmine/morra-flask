@@ -83,15 +83,20 @@ class MatchController:
         move2 = self.get_player_2_move()
 
         if move1 is None and move2 is None:
-            pass
             # TODO:come lo gestiamo?
+            return
 
-        result = move1.hand + move2.hand
+        if move1 is None:
+            
+        elif move2 is None:
 
-        if move2 is None or (move1.prediction == result and move2.prediction != result):
-            self.match.increment_1()
-        if move1 is None or (move2.prediction == result and move1.prediction != result):
-            self.match.increment_2()
+        else:
+            result = move1.hand + move2.hand
+
+            if move2 is None or (move1.prediction == result and move2.prediction != result):
+                self.match.increment_1()
+            if move1 is None or (move2.prediction == result and move1.prediction != result):
+                self.match.increment_2()
 
         match_over = False
         if self.match.punti1 == 12:

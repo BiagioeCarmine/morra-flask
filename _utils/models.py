@@ -80,7 +80,13 @@ class User(db.Base):
         :param password: UTF-8 encoded password
         :return: True if password matches hash, False if not
         """
-        return checkpw(password, self.password)
+        """
+        MySQL, a differenza di quanto pensi PyCharm,
+        restituisce una stringa decodificata come hash
+        della password, quindi va encode-ata per far
+        contento bcrypt che vuole le cose in UTF-8
+        """
+        return checkpw(password.encode("utf-8"), self.password.encode("utf-8"))
 
     def jsonify(self):
         return {

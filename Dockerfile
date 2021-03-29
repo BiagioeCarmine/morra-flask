@@ -7,4 +7,4 @@ RUN pip install -r requirements.txt
 EXPOSE 5000
 ENV FLASK_RUN_HOST=0.0.0.0
 COPY . .
-ENTRYPOINT ["./wait-for", "mysql:3306", "--", "python", "-u" "index.py"]
+ENTRYPOINT ["./wait-for", "mysql:3306", "--", "python", "-u", "index.py"]

@@ -4,9 +4,10 @@ https://morra.carminezacc.com
 
 # API Reference
 
-The API exposes HTTP routes and Socket.IO sockets.
+The API exposes multiple HTTP routes and interacts with two Socket.IO namespaces.
 
-If there are parameters in the route, they will be
+In this documentation, if there are parameters in
+the route's path, they will be
 surrounded by angle brackets, because that's how
 it's specified in Flask code, so we're doing it
 this way in the docs as well.
@@ -14,7 +15,7 @@ this way in the docs as well.
 The API can be divided in three sections:
 1. [Users](#Users), which deals with user creation and authentication.
 2. [MatchMaking](#Matchmaking), which creates matches based on the currently online players.
-3. [Match](#Match), which manages each match.
+3. [Matches](#Matches), which manages each match.
 
 Each of these sections is implemented in a dedicated file in
 the `_routes` subdirectory of this repository.
@@ -141,11 +142,59 @@ the user doesn't exist or the password is wrong.
 ## Matchmaking
 
 The matchmaking section exposes two HTTP routes and listens
-for Socket.IO connections.
+for Socket.IO connections on the `/mm` namespace.
+
+1. [GET `/mm/public_queue`](#get-mmpublic_queue)
+2. [GET `/mm/private_queue`](#get-mmprivate_queue)
+1. [`queue` event](#queue)
+2. [`private_queue` event](#private_queue)
+3. [`play_with_friends` event](#play_with_friend)
 
 ### HTTP routes
 
+1. [GET `/mm/public_queue`](#get-mmpublic_queue)
+2. [GET `/mm/private_queue`](#get-mmprivate_queue)
+
+#### GET `/mm/public_queue`
+
+#### GET `/mm/private_queue`
+
 ### Socket.IO events
 
+All of these events are handled in the `/mm` namespace and the
+default `/socket.io` path.
 
-## Match
+1. [`queue` event](#queue)
+2. [`private_queue` event](#private_queue)
+3. [`play_with_friends` event](#play_with_friend)
+
+#### `queue`
+
+#### `private_queue`
+
+#### `play_with_friend`
+
+## Matches
+
+The matches management section exposes two HTTP routes and listens
+for Socket.IO connections on the `/matches` namespace.
+
+1. [GET `/matches`](#get-matches)
+2. [GET `/matches/<match_id>`](#get-matchesmatch_id)
+1. eventi Socket.IO
+
+### HTTP routes
+
+1. [GET `/matches`](#get-matches)
+2. [GET `/matches/<match_id>`](#get-matchesmatch_id)
+
+#### GET `/matches`
+
+#### GET `/matches/<match_id>`
+
+### Socket.IO events
+
+All of these events are handled in the `/matches` namespace and the
+default `/socket.io` path.
+
+DA DOCUMENTARE SOCKETIO MATCHES 

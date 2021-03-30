@@ -1,4 +1,4 @@
-from _utils import models, db, redis
+from _utils import models, db, redis, match
 import eventlet
 import datetime
 
@@ -21,7 +21,6 @@ class Move:
 
 class MatchController:
     """
-    TODO: decidere canale di comunicazione, implementare
     IDEA: route che poi mette su Redis le mosse,
     tenendo due valori in Redis per ogni partita,
     poi quando c'è un nuovo turno si resettano i campi
@@ -44,10 +43,10 @@ class MatchController:
     def next_round(self):
         """
         Move to the next round
-
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
+        # match.next_round_sync() TODO:se ci sono problemi di sincronizzazione implementare sta cosa
         eventlet.sleep(10)
         self.play_round()
         pass
@@ -56,7 +55,6 @@ class MatchController:
         """
         Ottieni la mossa effettuata dal giocatore 1
         per il turno corrente
-        TODO: implement this
         """
         hand = redis.redis_db.hget("match {} player 1".format(self.match.id), "hand")
         prediction = redis.redis_db.hget("match {} player 1".format(self.match.id), "prediction")
@@ -69,7 +67,6 @@ class MatchController:
         """
         Ottieni la mossa effettuata dal giocatore 2
         per il turno corrente
-        TODO: implement this
         """
         hand = redis.redis_db.hget("match {} player 2".format(self.match.id), "hand")
         prediction = redis.redis_db.hget("match {} player 2".format(self.match.id), "prediction")
@@ -88,8 +85,8 @@ class MatchController:
     def end_match(self):
         """
         Fai finire la partita (suggerimento: chiama match.notify_match_over()
-        TODO: fai sta cosa Zacc
         """
+        match.notify_match_over(self.match)
 
     def play_round(self):
         move1 = self.get_player_1_move()

@@ -57,7 +57,6 @@ class MatchController:
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
-        # match.next_round_sync() TODO:se ci sono problemi di sincronizzazione implementare sta cosaù
         field_name = "match {} round result".format(self.match.id)
         redis.redis_db.hset(field_name, "hand1", )
         eventlet.sleep((start_time - datetime.datetime.now()).seconds)

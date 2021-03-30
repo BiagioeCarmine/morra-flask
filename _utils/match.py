@@ -1,5 +1,5 @@
 from _utils import redis, models
-from _routes import matches
+
 
 """
 Cose di utilità per far funzionare le route di /match.
@@ -16,14 +16,5 @@ def set_move(matchid, userid, hand, prediction):
                             mapping={'hand': hand, 'prediction': prediction})
 
 
-def notify_match_over(match: models.Match):
-    """
-    Avvisa entrambi gli utenti del match
-    che la partita è finita.
-    usando matches.communicate_match_over(sid)
-    :param match: la partita in questione
-    """
-    sid1 = redis.redis_db.get("sid for user " + str(match.user1)).decode("utf-8")
-    matches.communicate_match_over(sid1)
-    sid2 = redis.redis_db.get("sid for user " + str(match.user2)).decode("utf-8")
-    matches.communicate_match_over(sid2)
+def get_round_result(matchid):
+    pass

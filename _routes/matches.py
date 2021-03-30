@@ -55,7 +55,7 @@ def set_move(match_id):
     except jwt.DecodeError:
         return "bad token"
     except ValueError:
-        return Response("hand and prediction weren't integers", status=400)
+        return Response("hand or prediction weren't integers", status=400)
     except IndexError:
         return Response("bad Authorization string", status=400)
     except AttributeError:

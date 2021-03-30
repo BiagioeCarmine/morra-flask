@@ -35,19 +35,32 @@ class MatchController:
         self.skipped_rounds = 0
         print("creata partita", flush=True)
 
+    def set_round_results(self, move1, move2, next_round_start):
+        name = "match {} round result".format(self.match)
+        redis.redis_db.hset(name, "hand1", move1.hand)
+        redis.redis_db.hset(name, "prediction1", move1.prediction)
+        redis.redis_db.hset(name, "hand2", move2.hand)
+        redis.redis_db.hset(name, "prediction2", move2.prediction)
+        redis.redis_db.hset(name, "cur_points1", self.match.punti1)
+        redis.redis_db.hset(name, "cur_points2", self.match.punti2)
+        redis.redis_db.hset(name,
+                            "next_round_start", "over" if next_round_start is None else next_round_start.isoformat())
+
     def start(self):
         eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
         print("iniziata partita", flush=True)
         self.start_match()
 
-    def next_round(self):
+    def next_round(self, start_time):
         """
         Move to the next round
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
-        # match.next_round_sync() TODO:se ci sono problemi di sincronizzazione implementare sta cosa
-        eventlet.sleep(10)
+        # match.next_round_sync() TODO:se ci sono problemi di sincronizzazione implementare sta cosaù
+        field_name = "match {} round result".format(self.match.id)
+        redis.redis_db.hset(field_name, "hand1", )
+        eventlet.sleep((start_time - datetime.datetime.now()).seconds)
         self.play_round()
         pass
 
@@ -118,10 +131,12 @@ class MatchController:
             self.match.user2.increment_wins()
             match_over = True
 
+        next_round_start = None if match_over else datetime.datetime.now()+datetime.timedelta(seconds=15)
+        self.set_round_results(move1, move2, next_round_start)
+
         db.session.commit()
 
         if match_over:
-            self.end_match()
-            pass
+            return self.end_match()
 
-        self.next_round()
+        self.next_round(next_round_start)

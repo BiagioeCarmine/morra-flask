@@ -37,10 +37,12 @@ class MatchController:
 
     def set_round_results(self, move1, move2, next_round_start):
         name = "match {} round result".format(self.match)
-        redis.redis_db.hset(name, "hand1", move1.hand)
-        redis.redis_db.hset(name, "prediction1", move1.prediction)
-        redis.redis_db.hset(name, "hand2", move2.hand)
-        redis.redis_db.hset(name, "prediction2", move2.prediction)
+        if move1 is not None:
+            redis.redis_db.hset(name, "hand1", move1.hand)
+            redis.redis_db.hset(name, "prediction1", move1.prediction)
+        if move2 is not None:
+            redis.redis_db.hset(name, "hand2", move2.hand)
+            redis.redis_db.hset(name, "prediction2", move2.prediction)
         redis.redis_db.hset(name, "cur_points1", self.match.punti1)
         redis.redis_db.hset(name, "cur_points2", self.match.punti2)
         redis.redis_db.hset(name,
@@ -98,7 +100,7 @@ class MatchController:
         """
         Fai finire la partita (suggerimento: chiama match.notify_match_over()
         """
-        match.notify_match_over(self.match)
+        pass
 
     def play_round(self):
         move1 = self.get_player_1_move()
@@ -106,7 +108,9 @@ class MatchController:
 
         if move1 is None and move2 is None:
             if self.skipped_rounds == 0:
-                return self.next_round()
+                next_round_start = datetime.datetime.now() + datetime.timedelta(seconds=15)
+                self.set_round_results(None, None, next_round_start)
+                return self.next_round(next_round_start)
             else:
                 return self.end_match()
 

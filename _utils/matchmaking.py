@@ -50,6 +50,7 @@ def add_to_public_queue(user: int, sid: str):
     :param user: ID dell'utente da aggiungere
     :param sid: Session ID del socket a cui l'utente è collegato
     """
+    remove_sid(sid)
     try:
         print("aggiungendo a public queue", flush=True)
         p = redis.redis_db.pipeline()
@@ -89,10 +90,12 @@ def remove_sid(sid: str):
     in una coda.
     :param sid: SID da rimuovere dalla coda giusta
     """
-    user = redis.redis_db.get("user for sid " + sid).decode("utf-8")
-    redis.redis_db.srem("public_queue", user)
-    redis.redis_db.srem("private_queue", user)
-
+    try:
+        user = redis.redis_db.get("user for sid " + sid).decode("utf-8")
+        redis.redis_db.srem("public_queue", user)
+        redis.redis_db.srem("private_queue", user)
+    except AttributeError:
+        pass
 
 def add_to_private_queue(user: int, sid: str):
     """
@@ -100,6 +103,7 @@ def add_to_private_queue(user: int, sid: str):
     :param user: ID dell'utente da aggiungere
     :param sid: Session ID del socket a cui l'utente è connesso
     """
+    remove_sid(sid)
     redis.redis_db.sadd("private_queue", str(user))
     redis.redis_db.set("user for sid " + sid, user)
     redis.redis_db.set("sid for user " + str(user), sid)
@@ -113,6 +117,7 @@ def play_with_friends(user: int, sid: str, friend: int):
     :param sid: Sesion ID del socekt a cui l'utente richiedente è connesso
     :param friend: ID dell'utente con cui l'utente richiedente vuole giocare
     """
+    remove_sid(sid)
     friend_str = str(friend)
     try:
         p = redis.redis_db.pipeline()

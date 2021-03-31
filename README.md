@@ -176,25 +176,18 @@ default `/socket.io` path.
 
 ## Matches
 
-The matches management section exposes two HTTP routes and listens
-for Socket.IO connections on the `/matches` namespace.
+The matches management section exposes four HTTP routes.
 
 1. [GET `/matches`](#get-matches)
 2. [GET `/matches/<match_id>`](#get-matchesmatch_id)
-1. eventi Socket.IO
+3. [POST `/matches/<match_id>/move`](#post-matchesmatch_idmove)
+4. [GET `/matches/<match_id>/lastround`](#get-matchesmatch_lastround)
 
-### HTTP routes
-
-1. [GET `/matches`](#get-matches)
-2. [GET `/matches/<match_id>`](#get-matchesmatch_id)
 
 #### GET `/matches`
 
 #### GET `/matches/<match_id>`
 
-### Socket.IO events
+#### POST `/matches/<match_id>/move`
 
-All of these events are handled in the `/matches` namespace and the
-default `/socket.io` path.
-
-DA DOCUMENTARE SOCKETIO MATCHES 
+#### GET `/matches/<match_id>/lastround`

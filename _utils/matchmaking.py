@@ -92,10 +92,12 @@ def remove_sid(sid: str):
     """
     try:
         user = redis.redis_db.get("user for sid " + sid).decode("utf-8")
+        print("Rimuoviamo l'utente "+str(user))
         redis.redis_db.srem("public_queue", user)
         redis.redis_db.srem("private_queue", user)
     except AttributeError:
         pass
+
 
 def add_to_private_queue(user: int, sid: str):
     """

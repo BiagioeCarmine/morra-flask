@@ -17,18 +17,7 @@ def set_move(matchid, userid, hand, prediction):
 
 
 def get_round_result(matchid):
-    """
-    TODO: fai questa cosa Biagio
-    Questo commento è per ricordare cosa e come dobbiamo fare sta funzione
-    key = "match {} round result".format(matchid)"
-    value = {
-    "hand1"
-    "prediction1"
-    "hand2"
-    "prediction2"
-    "cur_points1"
-    "cur_points2"
-    "next_round_start"
-    }
-    """
-    pass
+    keys = redis.redis_db.hkeys("match {} round result".format(matchid))
+    values = redis.redis_db.hvals("match {} round result".format(matchid))
+    ret = {keys[i].decode("utf-8"): values[i].decode("utf-8") for i in range(len(keys))}
+    return ret

@@ -60,3 +60,9 @@ def set_move(match_id):
         return Response("bad Authorization string", status=400)
     except AttributeError:
         return Response("missing Authorization header", status=400)
+
+
+@matches.route("/<match_id>/last_round", methods=['GET'])
+def last_round(match_id):
+    res = match.get_round_result(match_id)
+    return jsonify(res)

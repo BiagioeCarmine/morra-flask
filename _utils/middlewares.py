@@ -1,55 +1,22 @@
-from werkzeug.wrappers import Request, Response
+from flask import request, Response, abort
 import re
+import functools
 
 from _utils import models
 
 
 def validate_hand(hand):
-    return 1 <= hand <= 5
+    try:
+        return 1 <= int(hand) <= 5
+    except ValueError:
+        return False
 
 
 def validate_prediction(prediction):
-    return 2 <= prediction <= 10
-
-
-form_validator_middleware_association = [
-    # Users
-    {
-        "regex": "\\/users\\/signup",
-        "fields": [
-            "username",
-            "password"
-        ],
-        "validators": [
-            models.User.validate_username,
-            models.User.validate_password
-        ]
-    },
-    {
-        "regex": "\\/users\\/login",
-        "fields": [
-            "username",
-            "password"
-        ],
-        "validators": [
-            models.User.validate_username,
-            models.User.validate_password
-        ]
-    },
-    # Matches
-    {
-        "regex": "\\/matches\\/\\d+\\/move",  # che fatica sti escape!
-        "fields": [
-            "hand",
-            "prediction"
-        ],
-        "validators": [
-            validate_hand,
-            validate_prediction
-        ]
-    },
-
-]
+    try:
+        return 2 <= int(prediction) <= 10
+    except ValueError:
+        return False
 
 
 class FormValidatorMiddleware:
@@ -64,33 +31,38 @@ class FormValidatorMiddleware:
     che il middleware non faccia nulla per le route per cui
     non deve essere chiamato in causa.
     """
-    def __init__(self, app, regex, required_fields, validators):
-        self.app = app
+    def __init__(self, required_fields, validators):
         self.required_fields = required_fields
         self.validators = validators
-        self.regex = re.compile(regex)
 
-    def __call__(self, environ, start_response):
-        request = Request(environ)
-        if request.method != 'POST' or self.regex.fullmatch(request.path).span() != (0, len(request.path)):
-            return self.app(environ, start_response)
+    def __call__(self, f):
+        @functools.wraps(f)
+        def decorated(*args, **kwargs):
+            if not request.form:
+                print("no form")
+                abort(Response("missing form", status=400))
 
-        if not request.form:
-            return Response("missing form", status=400)
+            print("got a form")
 
-        missing_fields = []
-        bad_fields = []
+            missing_fields = []
+            bad_fields = []
 
-        for (i, field) in enumerate(self.required_fields()):
-            if request.form.get(field) is None:
-                missing_fields.append(field)
-            elif not self.validators[i](request.form.get(field)):
-                bad_fields.append(field)
+            for (i, field) in enumerate(self.required_fields):
+                if request.form.get(field) is None:
+                    print("missing field {}".format(field))
+                    missing_fields.append(field)
+                elif not self.validators[i](request.form.get(field)):
+                    print("bad field {}".format(field))
+                    bad_fields.append(field)
 
-        if missing_fields:
-            return Response("missing fields "+str(missing_fields))
+            if missing_fields:
+                abort(Response("missing fields "+str(missing_fields)))
 
-        if bad_fields:
-            return Response("invalid fields "+str(bad_fields))
+            print("got all fields")
 
-        return self.app(environ, start_response)
+            if bad_fields:
+                abort(Response("invalid fields "+str(bad_fields)))
+
+            print("all fields OK")
+
+            return f(*args, **kwargs)

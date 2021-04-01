@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, Response
-from _utils import models, db, consts
+from _utils import models, db, consts, middlewares
 import jwt
 import os
 
@@ -39,17 +39,10 @@ def get_user(user_id):
 
 
 @users.route("/signup", methods=['POST'])
+@middlewares.FormValidatorMiddleware(
+    required_fields=["username", "password"],
+    validators=[lambda u: models.User.validate_username(u), lambda p: models.User.validate_password(p)])
 def signup():
-    if not request.form:
-        return Response("missing form", status=400)
-    if request.form.get("username") is None:
-        return Response("missing username", status=400)
-    if request.form.get("password") is None:
-        return Response("missing password", status=400)
-    if not models.User.validate_username(request.form['username']):
-        return Response("bad username", status=400)
-    if not models.User.validate_password(request.form['password']):
-        return Response("bad password", status=400)
     if models.User.query.filter(models.User.username == request.form['username']).all():
         return Response("username conflict", status=409)
     user = models.User(request.form['username'], request.form['password'].encode("utf-8"))
@@ -59,18 +52,10 @@ def signup():
 
 
 @users.route("/login", methods=['POST'])
+@middlewares.FormValidatorMiddleware(
+    required_fields=["username", "password"],
+    validators=[lambda u: models.User.validate_username(u), lambda p: models.User.validate_password(p)])
 def login():
-    if not request.form:
-        return Response("missing form", status=400)
-    if request.form.get("username") is None:
-        return Response("missing username", status=400)
-    if request.form.get("password") is None:
-        return Response("missing password", status=400)
-    if not models.User.validate_username(request.form['username']):
-        return Response("bad username", status=400)
-    if not models.User.validate_password(request.form['password']):
-        return Response("bad password", status=400)
-
     user = models.User.query.filter(models.User.username == request.form['username'].encode("utf-8")).first()
 
     if user is None or not user.check_password(request.form['password']):

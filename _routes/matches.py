@@ -33,19 +33,7 @@ def set_move(match_id):
     e registra la mossa usando match.set_move()
     ;:return: se il token è buono, restituirà OK, altrimenti bad token
     """
-    if not request.form:
-        return Response("missing form", status=400)
-    if not request.form.get("hand") is None:
-        return Response("missing hand", status=400)
-    if not request.form.get("prediction") is None:
-        return Response("missing prediction", status=400)
     try:
-        hand = int(request.form['hand'])
-        if hand < 1 or hand > 5:
-            return Response("bad hand", status=400)
-        prediction = int(request.form['prediction'])
-        if prediction < 2 or prediction > 10:
-            return Response("bad prediction", status=400)
         token = request.headers.get("Authorization").split("Bearer ")[1]
         payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
         print("got jwt ", flush=True)
@@ -54,8 +42,6 @@ def set_move(match_id):
         return "OK"
     except jwt.DecodeError:
         return "bad token"
-    except ValueError:
-        return Response("hand or prediction weren't integers", status=400)
     except IndexError:
         return Response("bad Authorization string", status=400)
     except AttributeError:

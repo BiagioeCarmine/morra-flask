@@ -7,3 +7,4 @@ import _utils.redis
 import _utils.socketio
 import _utils.matchcontroller
 import _utils.matchmaking
+import _utils.middlewares

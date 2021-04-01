@@ -2,7 +2,7 @@ from flask import Flask
 import os
 from flask_cors import CORS
 
-from _utils import db, socketio, redis
+from _utils import db, socketio, redis, middlewares
 import _routes
 from os import getenv
 from sys import exit
@@ -30,6 +30,9 @@ CORS(app)
 
 db.init_db()
 socketio.socketio.init_app(app, cors_allowed_origins="*")
+
+for el in middlewares.form_validator_middleware_association:
+    app.wsgi_app = middlewares.FormValidatorMiddleware(app.wsgi_app, el['regex'], el['fields'], el['validators'])
 
 app.register_blueprint(_routes.matches.matches)
 app.register_blueprint(_routes.matchmaking.mm)

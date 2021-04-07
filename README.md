@@ -146,38 +146,23 @@ the user doesn't exist or the password is wrong.
 
 ## Matchmaking
 
-The matchmaking section exposes two HTTP routes and listens
-for Socket.IO connections on the `/mm` namespace.
+The matchmaking section exposes five HTTP routes and listens
 
 1. [GET `/mm/public_queue`](#get-mmpublic_queue)
 2. [GET `/mm/private_queue`](#get-mmprivate_queue)
-1. [`queue` event](#queue)
-2. [`private_queue` event](#private_queue)
-3. [`play_with_friends` event](#play_with_friend)
+2. [POST `/mm/public_queue`](#post-mmprivate_queue)
+2. [POST `/mm/private_queue`](#post-mmpublic_queue)
+3. [POST `/mm/play_with_friends`](#post-mmplay_with_friends)
 
-### HTTP routes
+### GET `/mm/public_queue`
 
-1. [GET `/mm/public_queue`](#get-mmpublic_queue)
-2. [GET `/mm/private_queue`](#get-mmprivate_queue)
+### GET `/mm/private_queue`
 
-#### GET `/mm/public_queue`
+### POST `/mm/public_queue`
 
-#### GET `/mm/private_queue`
+### POST `/mm/private_queue`
 
-### Socket.IO events
-
-All of these events are handled in the `/mm` namespace and the
-default `/socket.io` path.
-
-1. [`queue` event](#queue)
-2. [`private_queue` event](#private_queue)
-3. [`play_with_friends` event](#play_with_friend)
-
-#### `queue`
-
-#### `private_queue`
-
-#### `play_with_friend`
+### POST `/mm/play_with_friends`
 
 ## Matches
 

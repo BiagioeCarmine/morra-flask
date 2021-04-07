@@ -29,7 +29,7 @@ def get_logged_in_status(_):
 
 @users.route("/user/<user_id>", methods=['GET'])
 def get_user(user_id):
-    return jsonify(models.User.query.get(user_id).jsonify())
+    return str(models.User.query.get(user_id).jsonify())
 
 
 @users.route("/signup", methods=['POST'])

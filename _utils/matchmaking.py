@@ -47,7 +47,7 @@ def notify_match_created(user: int, match: int):
     :param user: ID dell'utente da avvisare
     :param match: ID della partita da comunicare
     """
-    sid = redis.redis_db.set("match for user " + str(user), match)
+    redis.redis_db.set("match for user " + str(user), match)
 
 
 def create_match(user1: int, user2: int):

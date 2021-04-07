@@ -27,10 +27,14 @@ def get_private_queue():
     validators=[str.isdigit])
 @decorators.auth_decorator
 def play_with_friend(userid):
-    friend_id = int(request.form["user"])
-    match = matchmaking.play_with_friend(userid, friend_id)
-    eventlet.spawn(matchmaking.deal_with_match_confirmation, match)
-    return "OK"
+    try:
+        friend_id = int(request.form["user"])
+        match = matchmaking.play_with_friend(userid, friend_id)
+        # TODO: spostare sta chiamata in utils, qua in routes non ci azzecca niente
+        eventlet.spawn(matchmaking.deal_with_match_confirmation, match)
+        return "OK"
+    except matchmaking.UserAloneLikeADogError:
+        return "friend not online"
 
 
 @mm.route("/private_queue", methods=["POST"])
@@ -43,9 +47,11 @@ def add_to_private_queue(userid):
 @mm.route("/public_queue", methods=["POST"])
 @decorators.auth_decorator
 def add_to_public_queue(userid):
-    try:
-        (match_created, match) = matchmaking.add_to_public_queue(userid)
+
+    (match_created, match) = matchmaking.add_to_public_queue(userid)
+    if match:
+        # TODO: spostare sta chiamata in utils, qua in routes non ci azzecca niente
         eventlet.spawn(matchmaking.deal_with_match_confirmation, match)
-        return "OK"
-    except matchmaking.UserAloneLikeADogError:
-        return "friend not online"
+        return str(match.jsonify())
+    return "OK"
+

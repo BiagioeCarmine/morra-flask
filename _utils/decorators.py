@@ -10,25 +10,14 @@ key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
 
-def validate_hand(hand):
-    try:
-        return 1 <= int(hand) <= 5
-    except ValueError:
-        return False
-
-
-def validate_prediction(prediction):
-    try:
-        return 2 <= int(prediction) <= 10
-    except ValueError:
-        return False
-
-
-class FormValidatorMiddleware:
+class FormValidatorDecorator:
     """
-    Middleware che verifica se un form è presente,
+    Decorator che verifica se un form è presente,
     contiene i campi richiesti e chiama una funzione
     di validazione su ognuno.
+
+    Come classe perché cambia a seconda dei campi
+    che serve validare e deve essere generico.
     """
     def __init__(self, required_fields, validators):
         self.required_fields = required_fields
@@ -68,11 +57,11 @@ class FormValidatorMiddleware:
         return decorated
 
 
-def auth_middleware(f):
+def auth_decorator(f):
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         """
-        Middleware che verifica se il jwt è presente ed è valido.
+        Decorator che verifica se il jwt è presente ed è valido.
         """
         try:
             token = request.headers.get("Authorization").split("Bearer ")[1]

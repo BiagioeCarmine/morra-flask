@@ -1,7 +1,7 @@
 import eventlet
 from flask import Blueprint, request, jsonify
 
-from _utils import matchmaking, middlewares
+from _utils import matchmaking, decorators
 
 mm = Blueprint('mm', __name__, url_prefix="/mm")
 """
@@ -22,10 +22,10 @@ def get_private_queue():
 
 
 @mm.route("/play_with_friend", methods=["POST"])
-@middlewares.FormValidatorMiddleware(
+@decorators.FormValidatorDecorator(
     required_fields=["user"],
     validators=[str.isdigit])
-@middlewares.auth_middleware
+@decorators.auth_decorator
 def play_with_friend(userid):
     friend_id = int(request.form["user"])
     match = matchmaking.play_with_friend(userid, friend_id)
@@ -34,14 +34,14 @@ def play_with_friend(userid):
 
 
 @mm.route("/private_queue", methods=["POST"])
-@middlewares.auth_middleware
+@decorators.auth_decorator
 def add_to_private_queue(userid):
     add_to_private_queue(userid)
     return "OK"
 
 
 @mm.route("/public_queue", methods=["POST"])
-@middlewares.auth_middleware
+@decorators.auth_decorator
 def add_to_public_queue(userid):
     try:
         (match_created, match) = matchmaking.add_to_public_queue(userid)

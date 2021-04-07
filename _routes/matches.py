@@ -3,7 +3,7 @@ import os
 import jwt
 from flask import Blueprint, jsonify, request, Response
 
-from _utils import models, match, consts
+from _utils import models, match, consts, decorators
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
@@ -28,25 +28,19 @@ def get_match(match_id):
 
 
 @matches.route("/<match_id>/move", methods=["POST"])
-def set_move(match_id):
+@decorators.auth_decorator
+@decorators.FormValidatorDecorator(
+    required_fields=["hand", "prediction"],
+    validators=[lambda h: 1 <= h <= 5, lambda p: 2 <= p <= 10]
+)
+def set_move(userid, match_id):
     """
     Decodifica il token, prende l'user id
     e registra la mossa usando match.set_move()
     ;:return: se il token è buono, restituirà OK, altrimenti bad token
     """
-    try:
-        token = request.headers.get("Authorization").split("Bearer ")[1]
-        payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
-        print("got jwt ", flush=True)
-        print(payload, flush=True)
-        match.set_move(match_id, payload['id'], hand, prediction)
-        return "OK"
-    except jwt.DecodeError:
-        return "bad token"
-    except IndexError:
-        return Response("bad Authorization string", status=400)
-    except AttributeError:
-        return Response("missing Authorization header", status=400)
+    match.set_move(match_id, userid, request.form["hand"], request.form["prediction"])
+    return "OK"
 
 
 @matches.route("/<match_id>/last_round", methods=['GET'])

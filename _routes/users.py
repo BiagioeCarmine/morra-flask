@@ -3,7 +3,7 @@ import os
 import jwt
 from flask import Blueprint, jsonify, request, Response
 
-from _utils import models, db, consts, middlewares
+from _utils import models, db, consts, decorators
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
@@ -22,17 +22,9 @@ def get_users():
 
 
 @users.route("/verify", methods=['GET'])
-def get_logged_in_status():
-    try:
-        token = request.headers.get("Authorization").split("Bearer ")[1]
-        payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
-        return "OK"
-    except jwt.DecodeError:
-        return Response("bad token", status=401)
-    except IndexError:
-        return Response("bad Authorization string", status=400)
-    except AttributeError:
-        return Response("missing Authorization header", status=400)
+@decorators.auth_decorator
+def get_logged_in_status(_):
+    return "OK"
 
 
 @users.route("/user/<user_id>", methods=['GET'])
@@ -41,7 +33,7 @@ def get_user(user_id):
 
 
 @users.route("/signup", methods=['POST'])
-@middlewares.FormValidatorMiddleware(
+@decorators.FormValidatorDecorator(
     required_fields=["username", "password"],
     validators=[models.User.validate_username, models.User.validate_password])
 def signup():
@@ -54,7 +46,7 @@ def signup():
 
 
 @users.route("/login", methods=['POST'])
-@middlewares.FormValidatorMiddleware(
+@decorators.FormValidatorDecorator(
     required_fields=["username", "password"],
     validators=[models.User.validate_username, models.User.validate_password])
 def login():

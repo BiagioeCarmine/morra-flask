@@ -3,7 +3,7 @@ import _utils.db
 import _utils.match
 import _utils.matchcontroller
 import _utils.matchmaking
-import _utils.middlewares
+import _utils.decorators
 import _utils.models
 import _utils.redis
 import _utils.users

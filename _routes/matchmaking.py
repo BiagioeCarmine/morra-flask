@@ -24,7 +24,7 @@ def get_private_queue():
 @mm.route("/play_with_friend", methods=["POST"])
 @middlewares.FormValidatorMiddleware(
     required_fields=["user"],
-    validators=[lambda u: u.isdigit()])
+    validators=[str.isdigit])
 @middlewares.auth_middleware
 def play_with_friend(userid):
     friend_id = int(request.form["user"])

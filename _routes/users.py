@@ -43,7 +43,7 @@ def get_user(user_id):
 @users.route("/signup", methods=['POST'])
 @middlewares.FormValidatorMiddleware(
     required_fields=["username", "password"],
-    validators=[lambda u: models.User.validate_username(u), lambda p: models.User.validate_password(p)])
+    validators=[models.User.validate_username, models.User.validate_password])
 def signup():
     if models.User.query.filter(models.User.username == request.form['username']).all():
         return Response("username conflict", status=409)
@@ -56,7 +56,7 @@ def signup():
 @users.route("/login", methods=['POST'])
 @middlewares.FormValidatorMiddleware(
     required_fields=["username", "password"],
-    validators=[lambda u: models.User.validate_username(u), lambda p: models.User.validate_password(p)])
+    validators=[models.User.validate_username, models.User.validate_password])
 def login():
     user = models.User.query.filter(models.User.username == request.form['username'].encode("utf-8")).first()
 

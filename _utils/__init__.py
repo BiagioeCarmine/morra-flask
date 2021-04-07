@@ -1,10 +1,9 @@
-import _utils.users
-import _utils.match
-import _utils.db
 import _utils.consts
-import _utils.models
-import _utils.redis
-import _utils.socketio
+import _utils.db
+import _utils.match
 import _utils.matchcontroller
 import _utils.matchmaking
 import _utils.middlewares
+import _utils.models
+import _utils.redis
+import _utils.users

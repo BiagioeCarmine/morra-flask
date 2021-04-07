@@ -1,6 +1,7 @@
 from bcrypt import hashpw, gensalt, checkpw
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
+
 from _utils import db, consts
 
 """
@@ -151,6 +152,8 @@ class User(db.Base):
 class Match(db.Base):
     __tablename__ = 'Matches'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    confirmed = Column(Boolean, nullable=False)
+    finished = Column(Boolean, nullable=False)
     userid1 = Column(Integer, ForeignKey('Users.id'), nullable=False)
     userid2 = Column(Integer, ForeignKey('Users.id'), nullable=False)
     punti1 = Column(Integer, nullable=False)
@@ -165,6 +168,8 @@ class Match(db.Base):
         self.start_time = start_time
         self.userid1 = userid1
         self.userid2 = userid2
+        self.confirmed = False
+        self.finished = False
 
     def increment_1(self):
         self.punti1 += 1
@@ -172,11 +177,16 @@ class Match(db.Base):
     def increment_2(self):
         self.punti2 += 1
 
+    def confirm(self):
+        self.confirmed = True
+
     def jsonify(self):
         return {
-            "id": self.id,
+            "uri": "https://morra.carminezacc.com/matches/"+str(self.id),
             "userid1": self.userid1,
             "userid2": self.userid2,
             "punti1": self.punti1,
-            "punti2": self.punti2
+            "punti2": self.punti2,
+            "confirmed": self.confirmed,
+            "finished": self.finished
         }

@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from os import getenv
+
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 """
 Veloce guida a SQLAlchemy.
@@ -70,5 +71,4 @@ Base.query = session.query_property()
 
 
 def init_db():
-    import _utils.models
     Base.metadata.create_all(bind=engine)

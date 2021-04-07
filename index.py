@@ -1,11 +1,12 @@
-from flask import Flask
 import os
-from flask_cors import CORS
-
-from _utils import db, socketio, redis, middlewares
-import _routes
 from os import getenv
 from sys import exit
+
+from flask import Flask
+from flask_cors import CORS
+
+import _routes
+from _utils import db
 
 REQUIRED_ENV_VARS = [
     "MYSQL_DATABASE",
@@ -29,8 +30,6 @@ app = Flask(__name__)
 CORS(app)
 
 db.init_db()
-socketio.socketio.init_app(app, cors_allowed_origins="*")
-
 
 app.register_blueprint(_routes.matches.matches)
 app.register_blueprint(_routes.matchmaking.mm)
@@ -48,4 +47,4 @@ def test_root():
 print("Avvio server morra")
 
 if __name__ == "__main__":
-    socketio.socketio.run(app, host='0.0.0.0', port=5000, use_reloader=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)

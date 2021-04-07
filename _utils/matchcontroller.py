@@ -1,6 +1,8 @@
-from _utils import models, db, redis, match
-import eventlet
 import datetime
+
+import eventlet
+
+from _utils import models, db, redis
 
 
 class BadMoveError(Exception):
@@ -61,9 +63,11 @@ class MatchController:
         redis.redis_db.delete("match {} player 2".format(self.match.id))
         field_name = "match {} round result".format(self.match.id)
         redis.redis_db.hset(field_name, "hand1", )
+        eventlet.sleep((start_time - datetime.datetime.now()).seconds - 10)
+        if not self.match.confirmed:
+            return
         eventlet.sleep((start_time - datetime.datetime.now()).seconds)
         self.play_round()
-        pass
 
     def get_player_1_move(self):
         """

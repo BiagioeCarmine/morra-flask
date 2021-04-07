@@ -1,8 +1,13 @@
-from flask import request, Response, abort
-import re
 import functools
+import os
 
-from _utils import models
+import jwt
+from flask import request, Response, abort
+
+from _utils import consts
+
+key_from_env = os.getenv("JWT_KEY")
+jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
 
 def validate_hand(hand):
@@ -24,12 +29,6 @@ class FormValidatorMiddleware:
     Middleware che verifica se un form è presente,
     contiene i campi richiesti e chiama una funzione
     di validazione su ognuno.
-
-    Visto che Flask non permette di avere middleware
-    route-per-route, dobbiamo creare un middleware generico
-    di cui creiamo un'istanza per ogni route e fare in modo
-    che il middleware non faccia nulla per le route per cui
-    non deve essere chiamato in causa.
     """
     def __init__(self, required_fields, validators):
         self.required_fields = required_fields
@@ -66,3 +65,24 @@ class FormValidatorMiddleware:
             print("all fields OK")
 
             return f(*args, **kwargs)
+        return decorated
+
+
+def auth_middleware(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        """
+        Middleware che verifica se il jwt è presente ed è valido.
+        """
+        try:
+            token = request.headers.get("Authorization").split("Bearer ")[1]
+            payload = jwt.decode(token, jwt_key, algorithms=["HS256"])
+            userid = int(payload["id"])
+            return f(userid, *args, **kwargs)
+        except jwt.DecodeError:
+            abort(Response("bad token", status=401))
+        except IndexError:
+            abort(Response("bad Authorization string", status=400))
+        except AttributeError:
+            abort(Response("missing Authorization header", status=400))
+    return decorated

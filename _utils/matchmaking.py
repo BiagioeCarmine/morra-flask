@@ -1,27 +1,53 @@
 import datetime
+
 import eventlet
+from redis import WatchError
 
 from _utils import redis, db, models, matchcontroller
-from redis import WatchError
-from _routes import matchmaking
+
+"""
+Nuova architettura matchmaking senza usare socket.
+
+Ho scritto tutto sul README quindi non necessita di grandi introduzioni.
+"""
+
+
+def URI_for_match(match):
+    return "https://morra.carminezacc.com/matches/" + str(match)
+
+
+class PubQueueResult:
+    def __init__(self, match_created, match_id=None):
+        self.match_created = match_created
+        self.match_id = match_id
 
 
 class UserAloneLikeADogError(Exception):
     pass
 
 
+def deal_with_match_confirmation(match: models.Match):
+    if redis.redis_db.get("match for user " + str(match.userid1)) is None and \
+            redis.redis_db.get("match for user " + str(match.userid2)) is None:
+        match.confirmed = True
+        db.session.commit()
+
+
+def get_queue_status(user: int):
+    match = redis.redis_db.get("match for user " + str(user))
+    redis.redis_db.delete("match for user " + str(user))
+    return None if match is None else URI_for_match(match.decode("utf-8"))
+
+
 def notify_match_created(user: int, match: int):
     """
     Chiama la funzione corrispondente del gestore del
-    socket per avvisare un utente che è stata cretata
+    socket per avvisare un utente che è stata creata
     una partita in cui giocherà.
     :param user: ID dell'utente da avvisare
     :param match: ID della partita da comunicare
     """
-    sid = redis.redis_db.get("sid for user "+str(user)).decode("utf-8")
-    print("avvisando il sid")
-    print(sid)
-    matchmaking.communicate_match_id(sid, match)
+    sid = redis.redis_db.set("match for user " + str(user), match)
 
 
 def create_match(user1: int, user2: int):
@@ -32,7 +58,7 @@ def create_match(user1: int, user2: int):
     """
     print("creating match between {} and {}".format(user1, user2), flush=True)
     # fra 10 sec inizia la partita
-    match = models.Match(user1, user2, datetime.datetime.now()+datetime.timedelta(seconds=15))
+    match = models.Match(user1, user2, datetime.datetime.now() + datetime.timedelta(seconds=15))
     print(match, flush=True)
     db.session.add(match)
     db.session.commit()
@@ -42,23 +68,20 @@ def create_match(user1: int, user2: int):
     notify_match_created(user2, match.id)
     print("notified", flush=True)
     eventlet.spawn(matchcontroller.MatchController(match).start)
+    return match
 
 
-def add_to_public_queue(user: int, sid: str):
+def add_to_public_queue(user: int):
     """
     Aggiungiamo l'utente alla coda pubblica
     :param user: ID dell'utente da aggiungere
-    :param sid: Session ID del socket a cui l'utente è collegato
     """
-    remove_sid(sid)
     try:
         print("aggiungendo a public queue", flush=True)
         p = redis.redis_db.pipeline()
         p.watch("public_queue")
         if p.sismember("public_queue", str(user)):
-            return  # utente già in coda
-        redis.redis_db.set("user for sid " + sid, user)
-        redis.redis_db.set("sid for user " + str(user), sid)
+            return False, None  # utente già in coda
         queue_length = p.scard("public_queue")
         p.multi()
         if queue_length != 0:
@@ -67,11 +90,12 @@ def add_to_public_queue(user: int, sid: str):
             p.spop("public_queue")  # prendiamo un utente a caso dalla coda
             matched_user = p.execute()[0].decode("utf-8")
             print("stiamo per creare la partita", flush=True)
-            create_match(user, int(matched_user))
+            return True, create_match(user, int(matched_user))
         else:
             # non c'è nessuno in coda, aggiungiamo l'utente alla coda
             p.sadd("public_queue", str(user))
             p.execute()
+            return False, None
 
     except WatchError:
         """
@@ -80,38 +104,19 @@ def add_to_public_queue(user: int, sid: str):
         contemporanea di più utenti
         """
         print("watch error", flush=True)
-        add_to_public_queue(user, sid)
+        return add_to_public_queue(user)
 
 
-def remove_sid(sid: str):
-    """
-    Rimuovere l'utente collegato dal sid specificato
-    dalla coda in cui è presente, se è presente
-    in una coda.
-    :param sid: SID da rimuovere dalla coda giusta
-    """
-    try:
-        user = redis.redis_db.get("user for sid " + sid).decode("utf-8")
-        print("Rimuoviamo l'utente "+str(user))
-        redis.redis_db.srem("public_queue", user)
-        redis.redis_db.srem("private_queue", user)
-    except AttributeError:
-        pass
-
-
-def add_to_private_queue(user: int, sid: str):
+def add_to_private_queue(user: int):
     """
     Aggiungere un utente alla coda privata.
     :param user: ID dell'utente da aggiungere
     :param sid: Session ID del socket a cui l'utente è connesso
     """
-    remove_sid(sid)
     redis.redis_db.sadd("private_queue", str(user))
-    redis.redis_db.set("user for sid " + sid, user)
-    redis.redis_db.set("sid for user " + str(user), sid)
 
 
-def play_with_friends(user: int, sid: str, friend: int):
+def play_with_friend(user: int, friend: int):
     """
     Far giocare un utente con un utente specifico
     se l'utente richiesto è nella coda privata.
@@ -119,7 +124,6 @@ def play_with_friends(user: int, sid: str, friend: int):
     :param sid: Sesion ID del socekt a cui l'utente richiedente è connesso
     :param friend: ID dell'utente con cui l'utente richiedente vuole giocare
     """
-    remove_sid(sid)
     friend_str = str(friend)
     try:
         p = redis.redis_db.pipeline()
@@ -131,11 +135,9 @@ def play_with_friends(user: int, sid: str, friend: int):
         p.multi()
         p.srem("private_queue", friend_str)
         p.execute()
-        redis.redis_db.set("user for sid " + sid, user)
-        redis.redis_db.set("sid for user " + str(user), sid)
-        create_match(user, friend)
+        return create_match(user, friend)
     except WatchError:
-        play_with_friends(user, sid,  friend)
+        play_with_friend(user, friend)
         print("watch error", flush=True)
 
 

@@ -1,8 +1,9 @@
-from flask import Blueprint, jsonify, request, Response
-from _utils import models, match, consts
+import os
 
 import jwt
-import os
+from flask import Blueprint, jsonify, request, Response
+
+from _utils import models, match, consts
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env

@@ -115,10 +115,8 @@ and creates an user accordingly.
 It returns:
 * `OK` with status code 201 if the request body is valid and the user has been created;
 * `missing form` with status code 400, if no valid form in the supported formats is sent along with the request;
-* `missing username` with status code 400 if in the form there is no `username`;
-* `missing password` with status code 400 if in the form there is no `password`;
-* `bad username` with status code 400 if the username does not align with the [requirements](#username-and-password-requirements);
-* `bad password` with status code 400 if the password does not align with the [requirements](#username-and-password-requirements).
+* `missing fields [<list_of_missing_stuff>]` with status code 400 if there are missing fields in the form;
+* `invalid fields [<list_of_invalid_stuff>]` with status code 400 if the username and/or password does not align with the [requirements](#username-and-password-requirements);
 * `username conflict` with status code 409 if there is another user in the database with the same username.
 
 ### POST `/users/login`
@@ -137,10 +135,8 @@ It returns:
 standard for the user with status code 200 if the login attempt was successful
 (the user exists and the password is correct).
 * `missing form` with status code 400, if no valid form in the supported formats is sent along with the request;
-* `missing username` with status code 400 if in the form there is no `username`;
-* `missing password` with status code 400 if in the form there is no `password`;
-* `bad username` with status code 400 if the username does not align with the [requirements](#username-and-password-requirements);
-* `bad password` with status code 400 if the password does not align with the [requirements](#username-and-password-requirements).
+* `missing fields [<list_of_missing_stuff>]` with status code 400 if there are missing fields in the form;
+* `invalid fields [<list_of_invalid_stuff>]` with status code 400 if the username and/or password does not align with the [requirements](#username-and-password-requirements);
 * `bad credentials` with status code 401 if the login attempt failed either because
 the user doesn't exist or the password is wrong.
 

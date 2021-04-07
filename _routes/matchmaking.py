@@ -1,5 +1,5 @@
 import eventlet
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 
 from _utils import matchmaking, decorators
 
@@ -47,11 +47,10 @@ def add_to_private_queue(userid):
 @mm.route("/public_queue", methods=["POST"])
 @decorators.auth_decorator
 def add_to_public_queue(userid):
-
-    (match_created, match) = matchmaking.add_to_public_queue(userid)
-    if match:
-        # TODO: spostare sta chiamata in utils, qua in routes non ci azzecca niente
-        eventlet.spawn(matchmaking.deal_with_match_confirmation, match)
-        return str(match.jsonify())
-    return "OK"
+    (match_created, res) = matchmaking.add_to_public_queue(userid)
+    if match_created:
+        status = 201
+    else:
+        status = 200
+    return Response(jsonify(res), status=status)
 

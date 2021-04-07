@@ -2,7 +2,7 @@ import datetime
 
 import eventlet
 
-from _utils import models, db, redis
+from _utils import models, db, redis, consts
 
 
 class BadMoveError(Exception):
@@ -31,6 +31,7 @@ class MatchController:
     Alla fine del tempo di attesa, si legge da Redis l'ultimo valore del turno,
     ricordarsi di considerare il caso in cui uno o entrambi
     non hanno mandato un cazzo.
+    TODO: deal with match confirmation
     """
     def __init__(self, match: models.Match):
         self.match = match
@@ -112,7 +113,7 @@ class MatchController:
 
         if move1 is None and move2 is None:
             if self.skipped_rounds == 0:
-                next_round_start = datetime.datetime.now() + datetime.timedelta(seconds=15)
+                next_round_start = datetime.datetime.now() + datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
                 self.set_round_results(None, None, next_round_start)
                 return self.next_round(next_round_start)
             else:
@@ -138,7 +139,8 @@ class MatchController:
             self.match.user2.increment_wins()
             match_over = True
 
-        next_round_start = None if match_over else datetime.datetime.now()+datetime.timedelta(seconds=15)
+        next_round_start = None if match_over\
+            else datetime.datetime.now()+datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
         self.set_round_results(move1, move2, next_round_start)
 
         db.session.commit()

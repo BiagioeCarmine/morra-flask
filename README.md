@@ -180,6 +180,23 @@ The matches management section exposes four HTTP routes.
 
 # Architecture
 
+The big picture is the following: the client interacts with an API that directly
+causes or looks for a change in the main MySQL database (which contains data
+for users and matches) or the Redis key-value store (which contains the state
+of matchmaking and the matches currently being played).
+
+The matchmaking API only has background threads to ensure clients haven't stopped
+polling, and that's established solely based on data that's present on Redis,
+whereas the match API just changes data in Redis that is then used by
+a background thread (when needed) to compute round results or match cancellations
+or other similar things, which are then put into Redis.
+
+This architecture means that it should be relatively easy, were the need to arise,
+to scale this backend service to multiple identical instances interacting with a single MySQL
+database and a single Redis store, and one could expect that the load of
+matchmaking and match-playing background threads would be pretty balanced if there
+is a balanced number of matchmaking requests to each instance.
+
 ## User creation and authentication
 
 To sign up, the user must provide an username and a password. The password will

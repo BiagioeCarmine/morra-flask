@@ -1,9 +1,10 @@
 import datetime
+from enum import Enum
 
 import eventlet
 from redis import WatchError
 
-from _utils import redis, db, models, matchcontroller
+from _utils import redis, db, models, matchcontroller, consts
 
 """
 Nuova architettura matchmaking senza usare socket.
@@ -33,10 +34,48 @@ def deal_with_match_confirmation(match: models.Match):
         db.session.commit()
 
 
+def check_user_poll(user: int, last_poll: datetime, next_poll: datetime):
+    """
+    Una maniera alternativa di fare sta cosa però con dei secondi extra
+    sarebbe quella di rimandare la decisione a X secondi nel futuro
+    se e solo se il client fails to poll in time (non mi viene in italiano atm).
+    """
+    eventlet.sleep(next_poll - datetime.datetime.now() + consts.EXTRA_WAIT_SECONDS)
+    cur_poll = redis.redis_db.get("user {} last poll".format(user)).decode("utf-8")
+    if datetime.datetime.fromisoformat(cur_poll) == last_poll:
+        # il client ci sta ghostando! l'utente si sarà stancato di aspettare...
+        redis.redis_db.srem("private_queue", str(user))
+        redis.redis_db.srem("public_queue", str(user))
+
+
 def get_queue_status(user: int):
+    """
+    Unica funzione che deve toccare user {} last poll.
+    Quando questa funzione viene chiamata, aggiorniamo quel valore,
+    che tiene traccia di quando l'ultima volta l'utente ha fatto
+    una richiesta per chiedere se è stata trovata una partita.
+
+    Se non c'è una partita pronta per l'utente la funzione deve
+    fare in modo tale che check_user_poll in futuro controlli che
+    effettivamente il client stia continuando a fare richieste.
+    :param user: ID utente che richiede lo stato
+    """
+    cur_poll = datetime.datetime.now()
+    redis.redis_db.set("user {} last poll".format(user), str(cur_poll.isoformat()))
     match = redis.redis_db.get("match for user " + str(user))
     redis.redis_db.delete("match for user " + str(user))
-    return None if match is None else URI_for_match(match.decode("utf-8"))
+    if match is None:
+        next_poll = datetime.datetime.now() + datetime.timedelta(seconds=consts.QUEUE_STATUS_POLL_SECONDS)
+        eventlet.spawn(check_user_poll, user, cur_poll, next_poll)
+        return {
+            "created": False,
+            "pollBefore": next_poll.isoformat(),
+            "pollAt": "https://morra.carminezacc.com/mm/queue_status"
+        }
+    return {
+        "created": True,
+        "match": URI_for_match(match.decode("utf-8"))
+    }
 
 
 def notify_match_created(user: int, match: int):
@@ -58,7 +97,7 @@ def create_match(user1: int, user2: int):
     """
     print("creating match between {} and {}".format(user1, user2), flush=True)
     # fra 10 sec inizia la partita
-    match = models.Match(user1, user2, datetime.datetime.now() + datetime.timedelta(seconds=15))
+    match = models.Match(user1, user2, datetime.datetime.now() + datetime.timedelta(seconds=consts.MATCH_START_DELAY))
     print(match, flush=True)
     db.session.add(match)
     db.session.commit()
@@ -67,6 +106,7 @@ def create_match(user1: int, user2: int):
     notify_match_created(user1, match.id)
     notify_match_created(user2, match.id)
     print("notified", flush=True)
+    eventlet.spawn(deal_with_match_confirmation, match)
     eventlet.spawn(matchcontroller.MatchController(match).start)
     return match
 
@@ -80,8 +120,9 @@ def add_to_public_queue(user: int):
         print("aggiungendo a public queue", flush=True)
         p = redis.redis_db.pipeline()
         p.watch("public_queue")
-        if p.sismember("public_queue", str(user)):
-            return False, None  # utente già in coda
+        if p.sismember("public_queue", str(user)) or p.sismember("private_queue", str(user)):
+            p.unwatch()
+            return False, get_queue_status(user)  # utente già in coda
         queue_length = p.scard("public_queue")
         p.multi()
         if queue_length != 0:
@@ -90,12 +131,14 @@ def add_to_public_queue(user: int):
             p.spop("public_queue")  # prendiamo un utente a caso dalla coda
             matched_user = p.execute()[0].decode("utf-8")
             print("stiamo per creare la partita", flush=True)
+            p.unwatch()
             return True, create_match(user, int(matched_user))
         else:
             # non c'è nessuno in coda, aggiungiamo l'utente alla coda
             p.sadd("public_queue", str(user))
             p.execute()
-            return False, None
+            p.unwatch()
+            return False, get_queue_status(user)
 
     except WatchError:
         """
@@ -114,6 +157,7 @@ def add_to_private_queue(user: int):
     :param sid: Session ID del socket a cui l'utente è connesso
     """
     redis.redis_db.sadd("private_queue", str(user))
+    return get_queue_status(user)
 
 
 def play_with_friend(user: int, friend: int):

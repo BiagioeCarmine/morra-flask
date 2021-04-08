@@ -1,5 +1,4 @@
 import datetime
-from enum import Enum
 
 import eventlet
 from redis import WatchError
@@ -146,7 +145,6 @@ def add_to_private_queue(user: int):
     """
     Aggiungere un utente alla coda privata.
     :param user: ID dell'utente da aggiungere
-    :param sid: Session ID del socket a cui l'utente è connesso
     """
     redis.redis_db.sadd("private_queue", str(user))
     return get_queue_status(user)
@@ -157,7 +155,6 @@ def play_with_friend(user: int, friend: int):
     Far giocare un utente con un utente specifico
     se l'utente richiesto è nella coda privata.
     :param user: ID dell'utente che effettua la richiesta
-    :param sid: Sesion ID del socekt a cui l'utente richiedente è connesso
     :param friend: ID dell'utente con cui l'utente richiedente vuole giocare
     """
     friend_str = str(friend)

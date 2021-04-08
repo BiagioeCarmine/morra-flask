@@ -146,6 +146,7 @@ The matchmaking section exposes five HTTP routes and listens
 
 1. [GET `/mm/public_queue`](#get-mmpublic_queue)
 2. [GET `/mm/private_queue`](#get-mmprivate_queue)
+1. [GET `/mm/queue_status`](#get-mmqueue_status)
 2. [POST `/mm/public_queue`](#post-mmprivate_queue)
 2. [POST `/mm/private_queue`](#post-mmpublic_queue)
 3. [POST `/mm/play_with_friends`](#post-mmplay_with_friends)
@@ -153,6 +154,25 @@ The matchmaking section exposes five HTTP routes and listens
 ### GET `/mm/public_queue`
 
 ### GET `/mm/private_queue`
+
+### GET `/mm/queue_status`
+
+~~~
+{
+    "created": false,
+    "pollBefore": iso 8601 string,
+    "pollAt": "https://morra.carminezacc.com/mm/queue_status"
+}
+~~~
+
+or
+
+~~~
+return {
+    "created": true,
+    "match": "https://morra.carminezacc.com/match/<match_id>"
+}
+~~~
 
 ### POST `/mm/public_queue`
 

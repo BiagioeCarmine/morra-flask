@@ -37,7 +37,7 @@ def play_with_friend(userid):
     try:
         friend_id = int(request.form["user"])
         match = matchmaking.play_with_friend(userid, friend_id)
-        return Response(jsonify({"created": True, "match": matchmaking.URI_for_match(match.id)}), status=201)
+        return Response(jsonify({"created": True, "match": match.id}), status=201)
     except matchmaking.FriendNotOnlineError:
         return Response("friend not online", status=404)
 
@@ -56,5 +56,5 @@ def add_to_public_queue(userid):
         status = 201
     else:
         status = 200
-    return Response(jsonify({"created": True, "match": matchmaking.URI_for_match(res.id) if match_created else res}),
+    return Response(jsonify({"created": True, "match": res.id if match_created else res}),
                     status=status)

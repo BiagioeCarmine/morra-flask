@@ -160,17 +160,16 @@ The matchmaking section exposes five HTTP routes and listens
 ~~~
 {
     "created": false,
-    "pollBefore": iso 8601 string,
-    "pollAt": "https://morra.carminezacc.com/mm/queue_status"
+    "pollBefore": iso 8601 string
 }
 ~~~
 
 or
 
 ~~~
-return {
+{
     "created": true,
-    "match": "https://morra.carminezacc.com/match/<match_id>"
+    "match": 5
 }
 ~~~
 

@@ -61,12 +61,11 @@ def get_queue_status(user: int):
         eventlet.spawn(check_user_poll, user, cur_poll, next_poll)
         return {
             "created": False,
-            "pollBefore": next_poll.isoformat(),
-            "pollAt": "https://morra.carminezacc.com/mm/queue_status"
+            "pollBefore": next_poll.isoformat()
         }
     return {
         "created": True,
-        "match": URI_for_match(match.decode("utf-8"))
+        "match": int(match.decode("utf-8"))
     }
 
 
@@ -123,7 +122,7 @@ def add_to_public_queue(user: int):
             matched_user = p.execute()[0].decode("utf-8")
             print("stiamo per creare la partita", flush=True)
             p.unwatch()
-            return True, create_match(user, int(matched_user))
+            return True, create_match(user, int(matched_user)).id
         else:
             # non c'è nessuno in coda, aggiungiamo l'utente alla coda
             p.sadd("public_queue", str(user))

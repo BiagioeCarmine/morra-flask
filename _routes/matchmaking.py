@@ -21,6 +21,13 @@ def get_private_queue():
     return jsonify([user.jsonify() for user in pr])
 
 
+@mm.route("/queue_status", methods=["GET"])
+@decorators.auth_decorator
+def get_queue_status(userid):
+    res = matchmaking.get_queue_status(userid)
+    return jsonify([user.jsonify() for user in pr])
+
+
 @mm.route("/play_with_friend", methods=["POST"])
 @decorators.FormValidatorDecorator(
     required_fields=["user"],
@@ -30,18 +37,15 @@ def play_with_friend(userid):
     try:
         friend_id = int(request.form["user"])
         match = matchmaking.play_with_friend(userid, friend_id)
-        # TODO: spostare sta chiamata in utils, qua in routes non ci azzecca niente
-        eventlet.spawn(matchmaking.deal_with_match_confirmation, match)
-        return "OK"
-    except matchmaking.UserAloneLikeADogError:
-        return "friend not online"
+        return Response(jsonify({"created": True, "match": matchmaking.URI_for_match(match.id)}), status=201)
+    except matchmaking.FriendNotOnlineError:
+        return Response("friend not online", status=404)
 
 
 @mm.route("/private_queue", methods=["POST"])
 @decorators.auth_decorator
 def add_to_private_queue(userid):
-    add_to_private_queue(userid)
-    return "OK"
+    return jsonify(matchmaking.add_to_private_queue(userid))
 
 
 @mm.route("/public_queue", methods=["POST"])
@@ -52,5 +56,5 @@ def add_to_public_queue(userid):
         status = 201
     else:
         status = 200
-    return Response(jsonify(res), status=status)
-
+    return Response(jsonify({"created": True, "match": matchmaking.URI_for_match(res.id) if match_created else res}),
+                    status=status)

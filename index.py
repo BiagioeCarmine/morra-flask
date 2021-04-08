@@ -2,6 +2,8 @@ import os
 from os import getenv
 from sys import exit
 
+import eventlet
+from eventlet import wsgi
 from flask import Flask
 from flask_cors import CORS
 
@@ -47,4 +49,5 @@ def test_root():
 print("Avvio server morra")
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    wsgi.server(eventlet.listen(('', 5000)), app)
+

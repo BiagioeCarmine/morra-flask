@@ -23,15 +23,8 @@ class PubQueueResult:
         self.match_id = match_id
 
 
-class UserAloneLikeADogError(Exception):
+class FriendNotOnlineError(Exception):
     pass
-
-
-def deal_with_match_confirmation(match: models.Match):
-    if redis.redis_db.get("match for user " + str(match.userid1)) is None and \
-            redis.redis_db.get("match for user " + str(match.userid2)) is None:
-        match.confirmed = True
-        db.session.commit()
 
 
 def check_user_poll(user: int, last_poll: datetime, next_poll: datetime):
@@ -106,7 +99,6 @@ def create_match(user1: int, user2: int):
     notify_match_created(user1, match.id)
     notify_match_created(user2, match.id)
     print("notified", flush=True)
-    eventlet.spawn(deal_with_match_confirmation, match)
     eventlet.spawn(matchcontroller.MatchController(match).start)
     return match
 
@@ -174,15 +166,15 @@ def play_with_friend(user: int, friend: int):
         p.watch("private_queue")
         if not p.sismember("private_queue", friend_str):
             # amico non in coda: avviseremo!
-            raise UserAloneLikeADogError
+            raise FriendNotOnlineError
         # l'amico è in coda: togliamolo e creiamo la partita!
         p.multi()
         p.srem("private_queue", friend_str)
         p.execute()
         return create_match(user, friend)
     except WatchError:
-        play_with_friend(user, friend)
         print("watch error", flush=True)
+        return play_with_friend(user, friend)
 
 
 def get_public_queue():

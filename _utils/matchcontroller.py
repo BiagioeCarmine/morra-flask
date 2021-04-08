@@ -31,7 +31,6 @@ class MatchController:
     Alla fine del tempo di attesa, si legge da Redis l'ultimo valore del turno,
     ricordarsi di considerare il caso in cui uno o entrambi
     non hanno mandato un cazzo.
-    TODO: deal with match confirmation
     """
     def __init__(self, match: models.Match):
         self.match = match
@@ -52,9 +51,19 @@ class MatchController:
                             "next_round_start", "over" if next_round_start is None else next_round_start.isoformat())
 
     def start(self):
-        eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
-        print("iniziata partita", flush=True)
-        self.start_match()
+        eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds
+                       - (consts.MATCH_START_DELAY-consts.ROUND_MOVE_WAIT_SECONDS))
+        # deal with match confirmation
+        if redis.redis_db.get("match for user " + str(self.match.userid1)) is None and \
+                redis.redis_db.get("match for user " + str(self.match.userid2)) is None:
+            self.match.confirmed = True
+            db.session.commit()
+            eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
+            print("iniziata partita", flush=True)
+            self.start_match()
+        else:
+            print("partita annullata", flush=True)
+            return
 
     def next_round(self, start_time):
         """
@@ -62,11 +71,6 @@ class MatchController:
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
-        field_name = "match {} round result".format(self.match.id)
-        redis.redis_db.hset(field_name, "hand1", )
-        eventlet.sleep((start_time - datetime.datetime.now()).seconds - 10)
-        if not self.match.confirmed:
-            return
         eventlet.sleep((start_time - datetime.datetime.now()).seconds)
         self.play_round()
 

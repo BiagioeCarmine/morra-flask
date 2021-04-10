@@ -52,7 +52,7 @@ def get_queue_status(user: int):
     effettivamente il client stia continuando a fare richieste.
     :param user: ID utente che richiede lo stato
     """
-    cur_poll = datetime.datetime.now()
+    cur_poll = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
     redis.redis_db.set("user {} last poll".format(user), str(cur_poll.isoformat()))
     match = redis.redis_db.get("match for user " + str(user))
     redis.redis_db.delete("match for user " + str(user))
@@ -88,7 +88,7 @@ def create_match(user1: int, user2: int):
     """
     print("creating match between {} and {}".format(user1, user2), flush=True)
     # fra 10 sec inizia la partita
-    match = models.Match(user1, user2, datetime.datetime.now() + datetime.timedelta(seconds=consts.MATCH_START_DELAY))
+    match = models.Match(user1, user2, datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=consts.MATCH_START_DELAY))
     print(match, flush=True)
     db.session.add(match)
     db.session.commit()

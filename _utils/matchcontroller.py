@@ -144,7 +144,7 @@ class MatchController:
             match_over = True
 
         next_round_start = None if match_over\
-            else datetime.datetime.now()+datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
+            else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)+datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
         self.set_round_results(move1, move2, next_round_start)
 
         db.session.commit()

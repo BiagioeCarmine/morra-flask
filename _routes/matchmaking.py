@@ -42,15 +42,15 @@ def play_with_friend(userid):
         return Response("friend not online", status=404)
 
 
-@mm.route("/private_queue", methods=["POST"])
+@mm.route("/queue", methods=["POST"])
 @decorators.auth_decorator
-def add_to_private_queue(userid):
-    return jsonify(matchmaking.add_to_private_queue(userid))
-
-
-@mm.route("/public_queue", methods=["POST"])
-@decorators.auth_decorator
-def add_to_public_queue(userid):
+@decorators.FormValidatorDecorator(
+    required_fields=["type"],
+    validators=[lambda t: t == "public" or t == "private"]
+)
+def add_to_queue(userid):
+    if request.form["type"] == "private":
+        return jsonify(matchmaking.add_to_private_queue(userid))
     (match_created, res) = matchmaking.add_to_public_queue(userid)
     if match_created:
         status = 201

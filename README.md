@@ -148,7 +148,6 @@ The matchmaking section exposes five HTTP routes and listens
 2. [GET `/mm/private_queue`](#get-mmprivate_queue)
 1. [GET `/mm/queue_status`](#get-mmqueue_status)
 2. [POST `/mm/public_queue`](#post-mmprivate_queue)
-2. [POST `/mm/private_queue`](#post-mmpublic_queue)
 3. [POST `/mm/play_with_friends`](#post-mmplay_with_friends)
 
 ### GET `/mm/public_queue`
@@ -173,9 +172,10 @@ or
 }
 ~~~
 
-### POST `/mm/public_queue`
+### POST `/mm/queue`
 
-### POST `/mm/private_queue`
+`type` form param set to `public` or `private` depending
+on which queue to add the user to.
 
 ### POST `/mm/play_with_friends`
 

@@ -56,5 +56,4 @@ def add_to_queue(userid):
         status = 201
     else:
         status = 200
-    return Response(jsonify({"created": True, "match": res.id if match_created else res}),
-                    status=status)
+    return jsonify({"created": True, "match": res.id if match_created else res}), status

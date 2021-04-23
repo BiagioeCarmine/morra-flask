@@ -260,8 +260,11 @@ in the response and status code 201. If that isn't the case, the client will get
 status code 200 and the time and URL to poll to check whether a match was created
 and to notify the server that it is still waiting.
 
-The response to the polling
-requests will be the same as we just described for the first queuing request. If the client
+Currently, we use short polling, but we'll probably switch to long polling at some point,
+but that doesn't mean anything for a properly implemented frontend that doesn't hang while
+waiting for backend responses.
+
+The response to the polling requests will be the same as we just described for the first queuing request. If the client
 were to fail to poll in time, it is considered disconnected and removed from the queue.
 
 This change in status will be communicated in case the user tries to poll again too late:

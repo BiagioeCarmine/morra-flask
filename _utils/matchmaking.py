@@ -12,6 +12,11 @@ Ho scritto tutto sul README quindi non necessita di grandi introduzioni.
 """
 
 
+def user_in_queue(user):
+    return str(user).encode("utf-8") in redis.redis_db.smembers("public_queue") or \
+        str(user).encode("utf-8") in redis.redis_db.smembers("private_queue")
+
+
 def URI_for_match(match):
     return "https://morra.carminezacc.com/matches/" + str(match)
 
@@ -32,12 +37,18 @@ def check_user_poll(user: int, last_poll: datetime, next_poll: datetime):
     sarebbe quella di rimandare la decisione a X secondi nel futuro
     se e solo se il client fails to poll in time (non mi viene in italiano atm).
     """
-    eventlet.sleep(next_poll - datetime.datetime.now() + consts.EXTRA_WAIT_SECONDS)
+    print("ran check user poll", flush=True)
+    eventlet.sleep((next_poll - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds)
     cur_poll = redis.redis_db.get("user {} last poll".format(user)).decode("utf-8")
     if datetime.datetime.fromisoformat(cur_poll) == last_poll:
-        # il client ci sta ghostando! l'utente si sarà stancato di aspettare...
-        redis.redis_db.srem("private_queue", str(user))
-        redis.redis_db.srem("public_queue", str(user))
+        print("inattività utente {}".format(user))
+        # il client ci sta ghostando! l'utente si sarà stancato di aspettare, o forse è solo lenta la connessione...
+        # aspettiamo la metà dell'intervallo di polling normale e vediamo se arriva la richiesta
+        eventlet.sleep(consts.QUEUE_STATUS_POLL_SECONDS // 2)
+        if datetime.datetime.fromisoformat(cur_poll) == last_poll:
+            print("rimosso dalla coda l'utente {} per inattività".format(user))
+            redis.redis_db.srem("private_queue", str(user))
+            redis.redis_db.srem("public_queue", str(user))
 
 
 def get_queue_status(user: int):
@@ -57,9 +68,14 @@ def get_queue_status(user: int):
     match = redis.redis_db.get("match for user " + str(user))
     redis.redis_db.delete("match for user " + str(user))
     if match is None:
-        next_poll = datetime.datetime.now() + datetime.timedelta(seconds=consts.QUEUE_STATUS_POLL_SECONDS)
+        if not user_in_queue(user):
+            return {
+                "inQueue": False
+            }
+        next_poll = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=consts.QUEUE_STATUS_POLL_SECONDS)
         eventlet.spawn(check_user_poll, user, cur_poll, next_poll)
         return {
+            "inQueue": True,
             "created": False,
             "pollBefore": next_poll.isoformat()
         }
@@ -175,9 +191,11 @@ def play_with_friend(user: int, friend: int):
 
 def get_public_queue():
     pb = redis.redis_db.smembers("public_queue")
+    print(pb)
     return [models.User.query.get(int(user)) for user in pb]
 
 
 def get_private_queue():
     pr = redis.redis_db.smembers("private_queue")
+    print(pr)
     return [models.User.query.get(int(user)) for user in pr]

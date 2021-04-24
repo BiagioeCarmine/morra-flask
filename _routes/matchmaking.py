@@ -56,7 +56,7 @@ def add_to_queue(userid):
     if request.form["type"] == "private":
         return jsonify(matchmaking.add_to_private_queue(userid))
     (match_created, res) = matchmaking.add_to_public_queue(userid)
-    if match_created:
+    if match_created or res.get("created"):
         status = 201
     else:
         status = 200

@@ -2,10 +2,12 @@ import os
 from os import getenv
 from sys import exit
 
+import sentry_sdk
 import eventlet
 from eventlet import wsgi
 from flask import Flask
 from flask_cors import CORS
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 import _routes
 from _utils import db
@@ -15,7 +17,8 @@ REQUIRED_ENV_VARS = [
     "MYSQL_USER",
     "MYSQL_PASSWORD",
     "MYSQL_HOST",
-    "REDIS_HOST"
+    "REDIS_HOST",
+    "SENTRY_ENABLED"
 ]
 
 missing_vars = False
@@ -27,6 +30,19 @@ for var in REQUIRED_ENV_VARS:
 
 if missing_vars:
     exit(1)
+
+"""
+Inizializzazione Sentry per log aggregation
+"""
+
+
+if os.getenv("SENTRY_ENABLED") == "1":
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN_URL"),
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=1.0  # TODO:vedere documentazione
+    )
+
 
 app = Flask(__name__)
 CORS(app)

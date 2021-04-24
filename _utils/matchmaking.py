@@ -45,6 +45,7 @@ def check_user_poll(user: int, last_poll: datetime, next_poll: datetime):
         # il client ci sta ghostando! l'utente si sarà stancato di aspettare, o forse è solo lenta la connessione...
         # aspettiamo la metà dell'intervallo di polling normale e vediamo se arriva la richiesta
         eventlet.sleep(consts.QUEUE_STATUS_POLL_SECONDS // 2)
+        cur_poll = redis.redis_db.get("user {} last poll".format(user)).decode("utf-8")
         if datetime.datetime.fromisoformat(cur_poll) == last_poll:
             print("rimosso dalla coda l'utente {} per inattività".format(user))
             redis.redis_db.srem("private_queue", str(user))

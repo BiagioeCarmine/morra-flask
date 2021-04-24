@@ -117,6 +117,7 @@ class MatchController:
 
         if move1 is None and move2 is None:
             if self.skipped_rounds == 0:
+                self.skipped_rounds += 1
                 next_round_start = datetime.datetime.now() + datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
                 self.set_round_results(None, None, next_round_start)
                 return self.next_round(next_round_start)

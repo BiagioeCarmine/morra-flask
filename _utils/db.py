@@ -62,7 +62,7 @@ db_database = getenv("MYSQL_DATABASE")
 db_user = getenv("MYSQL_USER")
 db_password = getenv("MYSQL_PASSWORD")
 
-engine = create_engine('mysql+mysqlconnector://{}:{}@{}/{}'.format(db_user, db_password, db_host, db_database))
+engine = create_engine('mysql+mysqlconnector://{}:{}@{}/{}'.format(db_user, db_password, db_host, db_database), pool_recycle=3600)
 
 session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 

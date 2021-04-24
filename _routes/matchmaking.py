@@ -25,7 +25,11 @@ def get_private_queue():
 @decorators.auth_decorator
 def get_queue_status(userid):
     res = matchmaking.get_queue_status(userid)
-    return jsonify(res)
+    if res["created"]:
+        status = 201
+    else:
+        status = 200
+    return jsonify(res), status
 
 
 @mm.route("/play_with_friend", methods=["POST"])

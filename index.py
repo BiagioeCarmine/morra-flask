@@ -1,6 +1,7 @@
 import os
 from os import getenv
 from sys import exit
+import logging
 
 import sentry_sdk
 import eventlet
@@ -59,6 +60,7 @@ if os.getenv("JWT_KEY") is None:
 
 @app.route("/")
 def test_root():
+    logging.error("Caricamento home page")
     return "Non c'è niente da vedere"
 
 

@@ -111,7 +111,7 @@ def create_match(user1: int, user2: int):
     db.session.commit()
     print("Matches", flush=True)
     print(models.Match.query.all(), flush=True)
-    notify_match_created(user1, match.id)
+    # notify_match_created(user1, match.id) non serve perché lo riceve già
     notify_match_created(user2, match.id)
     print("notified", flush=True)
     eventlet.spawn(matchcontroller.MatchController(match).start)

@@ -2,22 +2,14 @@ from bcrypt import hashpw, gensalt, checkpw
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 
-from _utils import db, consts
+from _utils import consts, db
 
 """
-Qua vanno tutti i modelli di dato
-che useremo nell'app.
-
-Prima di leggere questa leggi l'introduzione
-ad SQLAlchemy che ho scritto in db.py.
-
-Per il momento ho scritto la classe User,
-poi aggiungere Match e poi eventualmente
-altre cose che ci serviranno per l'app.
+Moedlli di dato che usiamo nell'app.
 """
 
 
-class User(db.Base):
+class User(db.Model):
     """
     Modello di utente della nostra app.
 
@@ -29,9 +21,6 @@ class User(db.Base):
     che usano per gli scacchi (e qualcuno dice su
     csgo pure), altrimenti ci inventiamo noi una
     cosa a capocchia.
-
-    Poi lo implementiamo stesso qua dentro oppure in
-    users.py, come ci viene comodo faremo.
 
     Ho già sistemato l'hashing della password,
     l'unica cosa è che ci saranno da fare un po'
@@ -48,9 +37,6 @@ class User(db.Base):
     il costruttore, poi tipo nella route login useremo
     check_password che fa controllare a bcrypt se gli
     hash corrispondono.
-
-    L'oggetto che si ottiene dal costruttore di questa classe
-    è la cosa di cui parlavo in db.py.
     """
 
     __tablename__ = 'Users'
@@ -149,7 +135,7 @@ class User(db.Base):
         self.sconfitte += 1
 
 
-class Match(db.Base):
+class Match(db.Model):
     __tablename__ = 'Matches'
     id = Column(Integer, primary_key=True, autoincrement=True)
     confirmed = Column(Boolean, nullable=False)

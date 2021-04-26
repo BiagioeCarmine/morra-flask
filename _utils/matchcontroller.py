@@ -2,7 +2,7 @@ import datetime
 
 import eventlet
 
-from _utils import models, db, redis, consts
+from _utils import models, redis, consts, db
 
 
 class BadMoveError(Exception):

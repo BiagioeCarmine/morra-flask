@@ -10,7 +10,7 @@ from flask import Flask
 from flask_cors import CORS
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-import _routes
+from _routes import *
 from _utils import db
 
 REQUIRED_ENV_VARS = [
@@ -46,13 +46,25 @@ if os.getenv("SENTRY_ENABLED") == "1":
 
 
 app = Flask(__name__)
+
 CORS(app)
 
-db.init_db()
+# inizializzazione database
 
-app.register_blueprint(_routes.matches.matches)
-app.register_blueprint(_routes.matchmaking.mm)
-app.register_blueprint(_routes.users.users)
+db_host = getenv("MYSQL_HOST")
+db_database = getenv("MYSQL_DATABASE")
+db_user = getenv("MYSQL_USER")
+db_password = getenv("MYSQL_PASSWORD")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://{}:{}@{}/{}'.format(db_user, db_password, db_host, db_database)
+
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+
+app.register_blueprint(matches.matches)
+app.register_blueprint(matchmaking.mm)
+app.register_blueprint(users.users)
 
 if os.getenv("JWT_KEY") is None:
     print("Non è stata impostata una chiave per firmare i JWT, quindi verrà usata quella di test")

@@ -39,8 +39,10 @@ def set_move(userid, match_id):
     e registra la mossa usando match.set_move()
     ;:return: se il token è buono, restituirà OK, altrimenti bad token
     """
-    match.set_move(match_id, userid, request.form["hand"], request.form["prediction"])
-    return "OK"
+    if match.set_move(match_id, userid, request.form["hand"], request.form["prediction"]):
+        return "OK"
+    else:
+        return "User not in match", 401
 
 
 @matches.route("/<match_id>/last_round", methods=['GET'])

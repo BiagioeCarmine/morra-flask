@@ -3,7 +3,7 @@ import datetime
 import eventlet
 from redis import WatchError
 
-from _utils import redis, db, models, matchcontroller, consts
+from _utils import redis, models, matchcontroller, consts, db
 
 """
 Nuova architettura matchmaking senza usare socket.

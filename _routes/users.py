@@ -3,7 +3,7 @@ import os
 import jwt
 from flask import Blueprint, jsonify, request, Response
 
-from _utils import models, db, consts, decorators
+from _utils import models, consts, decorators, user
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
@@ -17,8 +17,8 @@ Route usate per gestire gli utenti.
 
 @users.route("/", methods=['GET'])
 def get_users():
-    result = models.User.query.all()
-    return jsonify([user.jsonify() for user in result])
+    result = user.get_all()
+    return jsonify([u.jsonify() for u in result])
 
 
 @users.route("/verify", methods=['GET'])
@@ -29,7 +29,7 @@ def get_logged_in_status(_):
 
 @users.route("/user/<user_id>", methods=['GET'])
 def get_user(user_id):
-    return jsonify(models.User.query.get(user_id).jsonify())
+    return jsonify(user.get(user_id).jsonify())
 
 
 @users.route("/signup", methods=['POST'])
@@ -37,12 +37,11 @@ def get_user(user_id):
     required_fields=["username", "password"],
     validators=[models.User.validate_username, models.User.validate_password])
 def signup():
-    if models.User.query.filter(models.User.username == request.form['username']).all():
+    try:
+        user.signup(request.form['username'], request.form['password'])
+        return Response("OK", status=201)
+    except user.DuplicateUserError:
         return Response("username conflict", status=409)
-    user = models.User(request.form['username'], request.form['password'].encode("utf-8"))
-    db.session.add(user)
-    db.session.commit()
-    return Response("OK", status=201)
 
 
 @users.route("/login", methods=['POST'])
@@ -50,7 +49,7 @@ def signup():
     required_fields=["username", "password"],
     validators=[models.User.validate_username, models.User.validate_password])
 def login():
-    user = models.User.query.filter(models.User.username == request.form['username'].encode("utf-8")).first()
+
 
     if user is None or not user.check_password(request.form['password']):
         print("wrong password", flush=True)

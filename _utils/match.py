@@ -11,9 +11,12 @@ def set_move(matchid, userid, hand, prediction):
     if userid == m_id.userid1:
         redis.redis_db.hset("match {} player {}".format(matchid, 1),
                             mapping={'hand': hand, 'prediction': prediction})
+        return True
     elif userid == m_id.userid2:
         redis.redis_db.hset("match {} player {}".format(matchid, 2),
                             mapping={'hand': hand, 'prediction': prediction})
+        return True
+    return False
 
 
 def get_round_result(matchid):

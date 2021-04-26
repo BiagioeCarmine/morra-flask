@@ -1,12 +1,7 @@
-import os
-
-import jwt
 from flask import Blueprint, jsonify, request, Response
 
-from _utils import models, consts, decorators, user
+from _utils import models, decorators, user
 
-key_from_env = os.getenv("JWT_KEY")
-jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
 
 users = Blueprint('users', __name__, url_prefix="/users")
 
@@ -49,10 +44,8 @@ def signup():
     required_fields=["username", "password"],
     validators=[models.User.validate_username, models.User.validate_password])
 def login():
-
-
-    if user is None or not user.check_password(request.form['password']):
-        print("wrong password", flush=True)
+    try:
+        return user.login(request.form["username"], request.form["password"])
+    except user.BadCredentialsError:
         return Response("bad credentials", status=401)
-    return jwt.encode({"id": user.id}, jwt_key, algorithm="HS256")
 

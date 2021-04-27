@@ -4,6 +4,7 @@ import eventlet
 from redis import WatchError
 
 from _utils import redis, models, matchcontroller, consts, db
+from flask import current_app
 
 """
 Nuova architettura matchmaking senza usare socket.
@@ -114,7 +115,8 @@ def create_match(user1: int, user2: int):
     # notify_match_created(user1, match.id) non serve perché lo riceve già
     notify_match_created(user2, match.id)
     print("notified", flush=True)
-    eventlet.spawn(matchcontroller.MatchController(match).start)
+    app = current_app._get_current_object()  # unico modo per far funzionare Flask-SQLAlchemy in altri thread
+    eventlet.spawn(matchcontroller.MatchController(match, app).start)
     return match
 
 

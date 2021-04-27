@@ -32,8 +32,9 @@ class MatchController:
     ricordarsi di considerare il caso in cui uno o entrambi
     non hanno mandato un cazzo.
     """
-    def __init__(self, match: models.Match):
+    def __init__(self, match: models.Match, app):
         self.match = match
+        self.app = app
         self.skipped_rounds = 0
         print("creata partita", flush=True)
 
@@ -45,7 +46,7 @@ class MatchController:
         if move2 is not None:
             redis.redis_db.hset(name, "hand2", move2.hand)
             redis.redis_db.hset(name, "prediction2", move2.prediction)
-        redis.redis_db.hset(name, "cur_points1", self.match.punti1)
+        redis.redis_db.hset(name, "cur_points1", self.match.    punti1)
         redis.redis_db.hset(name, "cur_points2", self.match.punti2)
         redis.redis_db.hset(name,
                             "next_round_start", "over" if next_round_start is None else next_round_start.isoformat())
@@ -56,8 +57,10 @@ class MatchController:
         # deal with match confirmation
         if redis.redis_db.get("match for user " + str(self.match.userid1)) is None and \
                 redis.redis_db.get("match for user " + str(self.match.userid2)) is None:
-            self.match.confirmed = True
-            db.session.commit()
+            with self.app.app_context():
+                db.engine.execute("UPDATE Matches SET confirmed=TRUE WHERE id={}".format(self.match.id))
+               # self.match.confirmed = True
+               # db.session.commit()
             eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
             print("iniziata partita", flush=True)
             self.start_match()
@@ -125,30 +128,40 @@ class MatchController:
                 return self.end_match()
 
         if move1 is None:
-            self.match.increment_2()
+            with self.app.app_context():
+                self.match.increment_2()
+                db.session.commit()
         elif move2 is None:
-            self.match.increment_1()
+            with self.app.app_context():
+                self.match.increment_1()
+                db.session.commit()
         else:
             result = move1.hand + move2.hand
 
             if move2 is None or (move1.prediction == result and move2.prediction != result):
-                self.match.increment_1()
+                with self.app.app_context():
+                    self.match.increment_1()
+                    db.session.commit()
             if move1 is None or (move2.prediction == result and move1.prediction != result):
-                self.match.increment_2()
+                with self.app.app_context():
+                    self.match.increment_2()
+                    db.session.commit()
 
         match_over = False
         if self.match.punti1 == 12:
-            self.match.user1.increment_wins()
+            with self.app.app_context():
+                self.match.user1.increment_wins()
+                db.session.commit()
             match_over = True
         elif self.match.punti2 == 12:
-            self.match.user2.increment_wins()
+            with self.app.app_context():
+                self.match.user2.increment_wins()
+                db.session.commit()
             match_over = True
 
         next_round_start = None if match_over\
             else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)+datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
         self.set_round_results(move1, move2, next_round_start)
-
-        db.session.commit()
 
         if match_over:
             return self.end_match()

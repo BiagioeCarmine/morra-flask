@@ -9,10 +9,19 @@ Route e socket usati per creare una partita tra due utenti.
 """
 
 
-@mm.route("/public_queue", methods=['GET'])
+@mm.route("/queue", methods=['GET'])
 def get_public_queue():
-    pb = matchmaking.get_public_queue()
-    return jsonify([user.jsonify() for user in pb])
+    q = []
+    if request.args.get('type') is None:
+        return "missing queue type", 400
+    elif request.args['type'] == "public":
+        q = matchmaking.get_public_queue()
+    elif request.args['type'] == "private":
+        q = matchmaking.get_private_queue()
+    else:
+        return "bad queue type", 400
+
+    return jsonify([user.jsonify() for user in q])
 
 
 @mm.route("/private_queue", methods=["GET"])

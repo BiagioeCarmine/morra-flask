@@ -144,26 +144,78 @@ the user doesn't exist or the password is wrong.
 
 The matchmaking section exposes five HTTP routes and listens
 
-1. [GET `/mm/public_queue`](#get-mmpublic_queue)
-2. [GET `/mm/private_queue`](#get-mmprivate_queue)
+1. [GET `/mm/queue`](#get-mmqueue)
 1. [GET `/mm/queue_status`](#get-mmqueue_status)
-2. [POST `/mm/public_queue`](#post-mmprivate_queue)
+2. [POST `/mm/queue`](#post-mmqueue)
 3. [POST `/mm/play_with_friends`](#post-mmplay_with_friends)
 
-### GET `/mm/public_queue`
+### GET `/mm/queue`
 
-### GET `/mm/private_queue`
+This route takes the `type` of queue as a query parameter and
+returns a list of the users currently in the chosen queue and
+status code 200 if the `type` is present and set to either
+`public` or `private`, or status code 400 and:
+
+* `missing queue type` if there is no `type` query parameter and;
+* `invalid queue type` if the specified `type` is neither `public` nor `private`.
+
+If the queue is empty, the status code is still 200 and it returns
+an empty list (`[]`).
+
+Example for `/mm/queue?type=public`:
+
+~~~
+[
+  {
+    "id": 1,
+    "punteggio": 0,
+    "sconfitte": 0,
+    "username": "carzacc",
+    "vittorie": 0
+  }
+]
+~~~
+
+Example for `/mm/queue?type=private` (where there is the possibility of having more than one queued user):
+
+~~~
+[
+  {
+    "id": 1,
+    "punteggio": 0,
+    "sconfitte": 0,
+    "username": "carzacc",
+    "vittorie": 0
+  },
+  {
+    "id": 2,
+    "punteggio": 0,
+    "sconfitte": 0,
+    "username": "carzacc2",
+    "vittorie": 0
+  }
+]
+~~~
 
 ### GET `/mm/queue_status`
 
+This route takes a JWT token in the `Authorization`
+header field, in the standard HTTP bearer token format:
+`Authorization: Bearer <jwt>` and is a route used by the
+client to know whether a match has been created for the user.
+
+Either this isn't the case, and the user has to poll again:
+
 ~~~
 {
-    "created": false,
-    "pollBefore": iso 8601 string
+   "created":false,
+   "inQueue":true,
+   "pollBefore":"2021-04-27T13:37:43.106416+00:00"
 }
 ~~~
 
-or
+or a match has been created since the last poll, and in that
+case the ID is returned in the response:
 
 ~~~
 {
@@ -174,10 +226,40 @@ or
 
 ### POST `/mm/queue`
 
-`type` form param set to `public` or `private` depending
-on which queue to add the user to.
+This route takes a JWT token in the `Authorization`
+header field, in the standard HTTP bearer token format:
+`Authorization: Bearer <jwt>` in `application/x-www-form-urlencoded`
+or `multipart/form-data` format containing one parameter:
 
+* `type` set to `public` or `private`.
+
+The route adds the user to the chosen matchmaking queue, , and this can result in one of two
+things: either the queue is empty or the user is being added to the private queue
+, so the user will get the following, asking to poll  again (at `/mm/queue_status`):
+
+~~~
+{
+   "created":false,
+   "inQueue":true,
+   "pollBefore":"2021-04-27T13:37:43.106416+00:00"
+}
+~~~
+
+or, if the chosen queue is the public queue, there may be another user in queue,
+which means that a match will be created right away and the ID will be returned:
+
+~~~
+{
+    "created": true,
+    "match": 5
+}
+~~~
+  
 ### POST `/mm/play_with_friends`
+
+This route is used to ask to play with an user supposed to be in the private queue.
+
+...
 
 ## Matches
 
@@ -222,8 +304,6 @@ To sign up, the user must provide an username and a password. The password will
 be stored in the database using the BCrypt password hashing algorithm. The number
 of salting iterations is determined by testing the server's performance and
 making a judgement call on the compromise between security and speed.
-
-Usernames are limited to 
 
 ## Matchmaking
 
@@ -276,6 +356,18 @@ to find a match upon the first request.
 
 Requesting to play with a specific friend will result in the same behaviour as when a match
 is found at the first request for a queued user.
+
+#### Preempting criticism
+
+An apparently dumb design decision is to have a set in Redis to denote a "public queue" that can contain either one or
+zero users.
+
+This, though, isn't entirely the case. Even though we only support 1v1 matches *right now*, the plan is to support
+bigger matches, and we don't want to massively change the API and the backend architecture when we decide to switch to
+that. As things are right now, matchmaking doesn't have to change a whole lot: we just add some more data to a user's
+entry in the queue to specify what kind of matches they're trying to queue for, so we only have to massively overhaul
+the match playing part which, as painful-sounding and scary as it is, isn't as bad as pretty much rewriting the
+matchmaking code as well.
 
 #### Match confirmation
 

@@ -1,6 +1,7 @@
 from bcrypt import hashpw, gensalt, checkpw
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
+import datetime
 
 from _utils import consts, db
 
@@ -168,11 +169,12 @@ class Match(db.Model):
 
     def jsonify(self):
         return {
-            "uri": "https://morra.carminezacc.com/matches/"+str(self.id),
+            "id": self.id,
             "userid1": self.userid1,
             "userid2": self.userid2,
             "punti1": self.punti1,
             "punti2": self.punti2,
             "confirmed": self.confirmed,
-            "finished": self.finished
+            "finished": self.finished,
+            "start_time": self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat()
         }

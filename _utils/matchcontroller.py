@@ -23,14 +23,14 @@ class Move:
 
 class MatchController:
     """
-    IDEA: route che poi mette su Redis le mosse,
-    tenendo due valori in Redis per ogni partita,
-    poi quando c'è un nuovo turno si resettano i campi
-    e si aspetta il tempo di attesa.
-
-    Alla fine del tempo di attesa, si legge da Redis l'ultimo valore del turno,
-    ricordarsi di considerare il caso in cui uno o entrambi
-    non hanno mandato un cazzo.
+    Funzionamento: quando viene creata una partita si chiama start(), che aspetta un po' per vedere se entrambi
+    gli utenti sono pronti a giocare (se hanno ricevuto l'informazione che una partita è stata cretata) e,quando
+    viene il momento per iniziare la partita, chiama start_match, che a sua volta chiama play_round,
+    che prende le mosse dei due giocatori con get_player_$_move e decide a chi assegnare punti. Se per due round
+    i due giocatori non rispondono con una mossa, la partita viene terminata anticipatamente (chiamando end_match).
+    In caso contrario, dopo aver impostato i punti e valutato se la partita è finita, chiama set_round_results
+    che mette tutto su redis e rende possibile ai client di ottenere quei dati, per poi chiamare next_round,
+    che quando arriverà il momento del prossimo round chiamerà di nuovo play_round.
     """
     def __init__(self, match: models.Match, app):
         self.match = match
@@ -52,6 +52,9 @@ class MatchController:
                             "next_round_start", "over" if next_round_start is None else next_round_start.isoformat())
 
     def start(self):
+        """
+        Entry point della partita
+        """
         eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds
                        - (consts.MATCH_START_DELAY-consts.ROUND_MOVE_WAIT_SECONDS))
         # deal with match confirmation
@@ -112,6 +115,8 @@ class MatchController:
         """
         Fai finire la partita (suggerimento: chiama match.notify_match_over()
         """
+        print("*tanti saluti dal thread ausiliario della partita {}, finita {} a {}*"
+              .format(self.match.id, self.match.punti1, self.match.punti2))
         pass
 
     def play_round(self):
@@ -119,12 +124,15 @@ class MatchController:
         move2 = self.get_player_2_move()
 
         if move1 is None and move2 is None:
+            print("Non ci sono state mosse questo round")
             if self.skipped_rounds == 0:
+                print("è la prima volta che succede")
                 self.skipped_rounds += 1
                 next_round_start = datetime.datetime.now() + datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
                 self.set_round_results(None, None, next_round_start)
                 return self.next_round(next_round_start)
             else:
+                print("terminiamo anticipatamente la partita")
                 return self.end_match()
 
         if move1 is None:

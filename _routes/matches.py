@@ -48,5 +48,7 @@ def set_move(userid, match_id):
 
 @matches.route("/<match_id>/last_round", methods=['GET'])
 def last_round(match_id):
+    if not match_id.isdigit():
+        return "invalid match_id", 400
     res = match.get_round_result(match_id)
     return jsonify(res)

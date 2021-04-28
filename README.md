@@ -364,6 +364,24 @@ Example output for `/matches/1`:
 
 #### GET `/matches/<match_id>/last_round`
 
+This route is used to get the results from the last round that has been played for the match with the specified
+`match_id`. It returns `invalid match_id` with status code 400 if the match id is not a number, and a completely empty
+response body if the match doesn't exist or no rounds have been played (to avoid accessing the database for this).
+
+Example output for `/matches/5/last_round`:
+
+~~~
+{
+  "cur_points1": "1",
+  "cur_points2": "0",
+  "hand1": "1",
+  "hand2": "2",
+  "next_round_start": "2021-04-28T12:23:40.267734+00:00",
+  "prediction1": "3",
+  "prediction2": "5"
+}
+~~~
+
 # Architecture
 
 The big picture is the following: the client interacts with an API that directly

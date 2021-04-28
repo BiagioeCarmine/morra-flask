@@ -21,7 +21,7 @@ class Move:
         self.prediction = prediction
 
 
-class MatchController:
+class MatchServer:
     """
     Funzionamento: quando viene creata una partita si chiama start(), che aspetta un po' per vedere se entrambi
     gli utenti sono pronti a giocare (se hanno ricevuto l'informazione che una partita è stata cretata) e,quando

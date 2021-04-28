@@ -32,7 +32,7 @@ def get_match(match_id):
 @decorators.auth_decorator
 @decorators.FormValidatorDecorator(
     required_fields=["hand", "prediction"],
-    validators=[lambda h: 1 <= h <= 5, lambda p: 2 <= p <= 10]
+    validators=[lambda h: h.isdigit() and 1 <= int(h) <= 5, lambda p: p.isdigit() and 2 <= int(p) <= 10]
 )
 def set_move(userid, match_id):
     """

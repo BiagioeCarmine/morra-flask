@@ -295,7 +295,7 @@ The matches management section exposes four HTTP routes.
 1. [GET `/matches`](#get-matches)
 2. [GET `/matches/<match_id>`](#get-matchesmatch_id)
 3. [POST `/matches/<match_id>/move`](#post-matchesmatch_idmove)
-4. [GET `/matches/<match_id>/lastround`](#get-matchesmatch_idlastround)
+4. [GET `/matches/<match_id>/last_round`](#get-matchesmatch_idlast_round)
 
 
 #### GET `/matches`
@@ -362,7 +362,7 @@ Example output for `/matches/1`:
 
 #### POST `/matches/<match_id>/move`
 
-#### GET `/matches/<match_id>/lastround`
+#### GET `/matches/<match_id>/last_round`
 
 # Architecture
 
@@ -382,6 +382,9 @@ to scale this backend service to multiple identical instances interacting with a
 database and a single Redis store, and one could expect that the load of
 matchmaking and match-playing background threads would be pretty balanced if there
 is a balanced number of matchmaking requests to each instance.
+
+Also, using Redis for the data used to respond to polling request (which tend to be, by their nature, very frequent)
+instead of storing even more ephemeral data in the database decreases the load on the
 
 ## User creation and authentication
 

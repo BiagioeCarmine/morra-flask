@@ -39,7 +39,8 @@ class MatchController:
         print("creata partita", flush=True)
 
     def set_round_results(self, move1, move2, next_round_start):
-        name = "match {} round result".format(self.match)
+        print("Impostiamo risultati round")
+        name = "match {} round result".format(self.match.id)
         if move1 is not None:
             redis.redis_db.hset(name, "hand1", move1.hand)
             redis.redis_db.hset(name, "prediction1", move1.prediction)
@@ -77,7 +78,7 @@ class MatchController:
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
-        eventlet.sleep((start_time - datetime.datetime.now()).seconds)
+        eventlet.sleep((start_time - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds)
         self.play_round()
 
     def get_player_1_move(self):
@@ -120,6 +121,9 @@ class MatchController:
         pass
 
     def play_round(self):
+        """
+        TODO: implementare una sorta di grace time, che crea una finestra temporale in cui inviare i risultati invece che un istante
+        """
         move1 = self.get_player_1_move()
         move2 = self.get_player_2_move()
 
@@ -128,7 +132,8 @@ class MatchController:
             if self.skipped_rounds == 0:
                 print("è la prima volta che succede")
                 self.skipped_rounds += 1
-                next_round_start = datetime.datetime.now() + datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
+                next_round_start = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) +\
+                                   datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
                 self.set_round_results(None, None, next_round_start)
                 return self.next_round(next_round_start)
             else:
@@ -168,7 +173,8 @@ class MatchController:
             match_over = True
 
         next_round_start = None if match_over\
-            else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)+datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
+            else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)+\
+                 datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
         self.set_round_results(move1, move2, next_round_start)
 
         if match_over:

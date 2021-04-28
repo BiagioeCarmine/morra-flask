@@ -24,7 +24,8 @@ def get_matches():
 
 @matches.route("/<match_id>", methods=['GET'])
 def get_match(match_id):
-    return jsonify(models.Match.query.get(match_id).jsonify())
+    m = models.Match.query.get(match_id)
+    return jsonify(m.jsonify()) if m is not None else ("not found", 404)
 
 
 @matches.route("/<match_id>/move", methods=["POST"])

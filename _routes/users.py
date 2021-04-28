@@ -24,7 +24,8 @@ def get_logged_in_status(_):
 
 @users.route("/user/<user_id>", methods=['GET'])
 def get_user(user_id):
-    return jsonify(user.get(user_id).jsonify())
+    u = user.get(user_id)
+    return jsonify(u.jsonify()) if u is not None else ("not found", 404)
 
 
 @users.route("/signup", methods=['POST'])

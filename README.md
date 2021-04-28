@@ -77,6 +77,9 @@ This route takes no parameters and returns an array of registered users in JSON 
 This route's only parameter is the user ID in the query URL.
 It returns the data of the user identified by that ID in JSON format.
 
+If there is no user with that ID, it responds with `not found` and
+status code 404.
+
 Example output for `/users/user/1`:
 
 ~~~
@@ -191,7 +194,7 @@ Example for `/mm/queue?type=private` (where there is the possibility of having m
     "id": 2,
     "punteggio": 0,
     "sconfitte": 0,
-    "username": "carzacc2",
+    "username": "Grimos10",
     "vittorie": 0
   }
 ]
@@ -228,12 +231,16 @@ case the ID is returned in the response:
 
 This route takes a JWT token in the `Authorization`
 header field, in the standard HTTP bearer token format:
-`Authorization: Bearer <jwt>` in `application/x-www-form-urlencoded`
+`Authorization: Bearer <jwt>` and a POST request form in `application/x-www-form-urlencoded`
 or `multipart/form-data` format containing one parameter:
 
 * `type` set to `public` or `private`.
 
-The route adds the user to the chosen matchmaking queue, , and this can result in one of two
+You can expect the same responses as the ones returned by [GET `/users/verify`](#get-usersverify) if there is an issue
+with the `Authorization` header, and the same behavior as [POST `/users/signup`](#post-userssignup) if the form is
+missing or invalid.
+
+If the request is valid, the route adds the user to the chosen matchmaking queue, and this can result in one of two
 things: either the queue is empty or the user is being added to the private queue
 , so the user will get the following, asking to poll  again (at `/mm/queue_status`):
 
@@ -259,7 +266,27 @@ which means that a match will be created right away and the ID will be returned:
 
 This route is used to ask to play with an user supposed to be in the private queue.
 
-...
+This route takes a JWT token in the `Authorization`
+header field, in the standard HTTP bearer token format:
+`Authorization: Bearer <jwt>` and a POST request form in `application/x-www-form-urlencoded`
+or `multipart/form-data` format containing one parameter:
+
+* `user`, the ID of the user to play with.
+
+You can expect the same responses as the ones returned by [GET `/users/verify`](#get-usersverify) if there is an issue
+with the `Authorization` header, and the same behavior as [POST `/users/signup`](#post-userssignup) if the form is
+missing or invalid.
+
+If the request is valid and the user is online, the response the following, with `1` replaced by the match ID:
+
+~~~
+{
+  "created":true,
+  "match":1
+}
+~~~
+
+If the user is not online, it will return `friend not online` and status code 404.
 
 ## Matches
 
@@ -268,12 +295,70 @@ The matches management section exposes four HTTP routes.
 1. [GET `/matches`](#get-matches)
 2. [GET `/matches/<match_id>`](#get-matchesmatch_id)
 3. [POST `/matches/<match_id>/move`](#post-matchesmatch_idmove)
-4. [GET `/matches/<match_id>/lastround`](#get-matchesmatch_lastround)
+4. [GET `/matches/<match_id>/lastround`](#get-matchesmatch_idlastround)
 
 
 #### GET `/matches`
 
+This route returns a list of the matches currently in the database. It returns an empty list (`[]`) if there aren't
+any, or something like this if there are some:
+
+~~~
+[
+  {
+    "confirmed": true,
+    "finished": true,
+    "id": 1,
+    "punti1": 12,
+    "punti2": 5,
+    "start_time": "2021-04-28T07:20:20+00:00",
+    "userid1": 1,
+    "userid2": 2
+  },
+  {
+    "confirmed": true,
+    "finished": false,
+    "id": 2,
+    "punti1": 2,
+    "punti2": 0,
+    "start_time": "2021-04-28T07:48:20+00:00",
+    "userid1": 2,
+    "userid2": 1
+  },
+  {
+    "confirmed": false,
+    "finished": false,
+    "id": 3,
+    "punti1": 0,
+    "punti2": 0,
+    "start_time": "2021-04-28T07:50:20+00:00",
+    "userid1": 3,
+    "userid2": 1
+  }
+]
+~~~
+
 #### GET `/matches/<match_id>`
+
+This route returns the match data for the match with the provided match ID.
+
+If there is no match with that ID, it responds with `not found` and  status code 404.
+
+Example output for `/matches/1`:
+
+~~~
+{
+  "confirmed": true,
+  "finished": true,
+  "id": 1,
+  "punti1": 12,
+  "punti2": 5,
+  "start_time": "2021-04-28T07:20:20+00:00",
+  "userid1": 1,
+  "userid2": 2
+}
+~~~
+
 
 #### POST `/matches/<match_id>/move`
 
@@ -368,6 +453,14 @@ that. As things are right now, matchmaking doesn't have to change a whole lot: w
 entry in the queue to specify what kind of matches they're trying to queue for, so we only have to massively overhaul
 the match playing part which, as painful-sounding and scary as it is, isn't as bad as pretty much rewriting the
 matchmaking code as well.
+
+Also, if the app has massive success (yeah, *ikr*, I'm laughing while writing this as well), we may decide to implement
+some additional filters to the matchmaking system (inspired by popular multiplayer games), for example only matching
+people with similar ability or, being really visionary and optimistic about the app's chances of great success,
+matching people who are geographically close and having them connect to a server in their region.
+
+At the moment, though, it doesn't hurt to have it a bit more symmetrical to the private queue and to be able to
+(relatively) easily switch over to supporting 2v2 matches at least as well.
 
 #### Match confirmation
 

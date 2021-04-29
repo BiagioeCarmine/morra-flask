@@ -38,7 +38,7 @@ class MatchServer:
         self.skipped_rounds = 0
         print("creata partita", flush=True)
 
-    def set_round_results(self, move1, move2, next_round_start):
+    def set_round_results(self, move1, move2, next_round_start, next_round_results):
         print("Impostiamo risultati round")
         name = "match {} round result".format(self.match.id)
         if move1 is not None:
@@ -49,8 +49,10 @@ class MatchServer:
             redis.redis_db.hset(name, "prediction2", move2.prediction)
         redis.redis_db.hset(name, "cur_points1", self.match.    punti1)
         redis.redis_db.hset(name, "cur_points2", self.match.punti2)
-        redis.redis_db.hset(name,
-                            "next_round_start", "over" if next_round_start is None else next_round_start.isoformat())
+        redis.redis_db.hset(name, "next_round_start",
+                            "over" if next_round_start is None else next_round_start.isoformat())
+        redis.redis_db.hset(name, "next_round_results",
+                            "over" if next_round_results is None else next_round_results.isoformat())
 
     def start(self):
         """
@@ -72,13 +74,14 @@ class MatchServer:
             print("partita annullata", flush=True)
             return
 
-    def next_round(self, start_time):
+    def next_round(self, start_time, round_results_time):
         """
         Move to the next round
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
-        eventlet.sleep((start_time - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds)
+        eventlet.sleep((start_time - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds+
+                       (consts.EXTRA_WAIT_SECONDS*1000)/2)
         self.play_round()
 
     def get_player_1_move(self):
@@ -113,9 +116,8 @@ class MatchServer:
         self.play_round()
 
     def end_match(self):
-        """
-        Fai finire la partita (suggerimento: chiama match.notify_match_over()
-        """
+        with self.app.app_context():
+            db.engine.execute("UPDATE Matches SET finished=TRUE WHERE id={}".format(self.match.id))
         print("*tanti saluti dal thread ausiliario della partita {}, finita {} a {}*"
               .format(self.match.id, self.match.punti1, self.match.punti2))
         pass
@@ -134,8 +136,10 @@ class MatchServer:
                 self.skipped_rounds += 1
                 next_round_start = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) +\
                                    datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
-                self.set_round_results(None, None, next_round_start)
-                return self.next_round(next_round_start)
+                next_round_results = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) +\
+                                   datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS+consts.EXTRA_WAIT_SECONDS)
+                self.set_round_results(None, None, next_round_start, next_round_results)
+                return self.next_round(next_round_start, next_round_results)
             else:
                 print("terminiamo anticipatamente la partita")
                 return self.end_match()
@@ -189,9 +193,11 @@ class MatchServer:
         next_round_start = None if match_over\
             else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)+\
                  datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
-        self.set_round_results(move1, move2, next_round_start)
+        next_round_results = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + \
+                             datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS + consts.EXTRA_WAIT_SECONDS)
+        self.set_round_results(move1, move2, next_round_start, next_round_results)
 
         if match_over:
             return self.end_match()
 
-        self.next_round(next_round_start)
+        self.next_round(next_round_start, next_round_results)

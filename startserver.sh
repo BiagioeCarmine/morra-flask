@@ -6,4 +6,4 @@ if [ ! -f wait-for ]; then
   chmod +x wait-for
 fi
 docker-compose build
-docker-compose up --renew-anon-volumes $1
+docker-compose up $1

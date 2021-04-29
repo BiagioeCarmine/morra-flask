@@ -146,6 +146,7 @@ class Match(db.Model):
     punti1 = Column(Integer, nullable=False)
     punti2 = Column(Integer, nullable=False)
     start_time = Column(DateTime, nullable=False)
+    first_round_results = Column(DateTime, nullable=False)
     user1 = relationship("User", foreign_keys=userid1)
     user2 = relationship("User", foreign_keys=userid2)
 
@@ -153,6 +154,7 @@ class Match(db.Model):
         self.punti1 = 0
         self.punti2 = 0
         self.start_time = start_time
+        self.first_round_results = start_time+datetime.timedelta(seconds=consts.EXTRA_WAIT_SECONDS)
         self.userid1 = userid1
         self.userid2 = userid2
         self.confirmed = False

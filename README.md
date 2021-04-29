@@ -18,9 +18,9 @@ it's specified in Flask code, so we're doing it
 this way in the docs as well.
 
 The API can be divided in three sections:
-1. [Users](#Users), which deals with user creation and authentication.
-2. [MatchMaking](#Matchmaking), which creates matches based on the currently online players.
-3. [Matches](#Matches), which manages each match.
+1. [Users](#users), which deals with user creation and authentication.
+2. [MatchMaking](#matchmaking), which creates matches based on the currently online players.
+3. [Matches](#matches), which manages each match.
 
 Each of these sections is implemented in a dedicated file in
 the `_routes` subdirectory of this repository.
@@ -150,7 +150,7 @@ The matchmaking section exposes five HTTP routes and listens
 1. [GET `/mm/queue`](#get-mmqueue)
 1. [GET `/mm/queue_status`](#get-mmqueue_status)
 2. [POST `/mm/queue`](#post-mmqueue)
-3. [POST `/mm/play_with_friends`](#post-mmplay_with_friends)
+3. [POST `/mm/play_with_friend`](#post-mmplay_with_friend)
 
 ### GET `/mm/queue`
 

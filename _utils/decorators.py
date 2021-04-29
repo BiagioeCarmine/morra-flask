@@ -44,12 +44,12 @@ class FormValidatorDecorator:
                     bad_fields.append(field)
 
             if missing_fields:
-                abort(Response("missing fields "+str(missing_fields)))
+                abort(Response("missing fields "+str(missing_fields), status=400))
 
             print("got all fields")
 
             if bad_fields:
-                abort(Response("invalid fields "+str(bad_fields)))
+                abort(Response("invalid fields "+str(bad_fields), status=400))
 
             print("all fields OK")
 

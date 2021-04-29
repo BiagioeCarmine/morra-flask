@@ -262,7 +262,7 @@ which means that a match will be created right away and the ID will be returned:
 }
 ~~~
   
-### POST `/mm/play_with_friends`
+### POST `/mm/play_with_friend`
 
 This route is used to ask to play with an user supposed to be in the private queue.
 
@@ -361,6 +361,26 @@ Example output for `/matches/1`:
 
 
 #### POST `/matches/<match_id>/move`
+
+This route is used to make a move in a match..
+
+This route takes a JWT token in the `Authorization`
+header field, in the standard HTTP bearer token format:
+`Authorization: Bearer <jwt>` and a POST request form in `application/x-www-form-urlencoded`
+or `multipart/form-data` format containing two parameters:
+
+* `hand`, the number that would be represented by the hand in an in-person game;
+* `prediction`, the number the player would shout in a real game.
+
+You can expect the same responses as the ones returned by [GET `/users/verify`](#get-usersverify) if there is an issue
+with the `Authorization` header, and the same behavior as [POST `/users/signup`](#post-userssignup) if the form is
+missing or invalid.
+
+If the match ID is not a number, it will return `invalid match_id` with status code 400.
+
+If the user is not part of the match, it will return `User not in match` with status code 401.
+
+If the request is valid, the server will return `OK` and status code 200.
 
 #### GET `/matches/<match_id>/last_round`
 

@@ -18,8 +18,8 @@ def get_users():
 
 @users.route("/verify", methods=['GET'])
 @decorators.auth_decorator
-def get_logged_in_status(_):
-    return "OK"
+def get_logged_in_status(user_id):
+    return {"id": user_id}
 
 
 @users.route("/user/<user_id>", methods=['GET'])

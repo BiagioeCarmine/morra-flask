@@ -62,9 +62,9 @@ class MatchServer:
         if redis.redis_db.get("match for user " + str(self.match.userid1)) is None and \
                 redis.redis_db.get("match for user " + str(self.match.userid2)) is None:
             with self.app.app_context():
+                self.match.confirmed = True
+                # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
                 db.engine.execute("UPDATE Matches SET confirmed=TRUE WHERE id={}".format(self.match.id))
-               # self.match.confirmed = True
-               # db.session.commit()
             eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
             print("iniziata partita", flush=True)
             self.start_match()
@@ -143,33 +143,47 @@ class MatchServer:
         if move1 is None:
             with self.app.app_context():
                 self.match.increment_2()
-                db.session.commit()
+                # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
+                db.engine.execute("UPDATE Matches SET punti2={} WHERE id={}"
+                                  .format(self.match.punti2, self.match.id))
         elif move2 is None:
             with self.app.app_context():
                 self.match.increment_1()
-                db.session.commit()
+                # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
+                db.engine.execute("UPDATE Matches SET punti1={} WHERE id={}"
+                                  .format(self.match.punti1, self.match.id))
         else:
             result = move1.hand + move2.hand
 
             if move2 is None or (move1.prediction == result and move2.prediction != result):
                 with self.app.app_context():
                     self.match.increment_1()
-                    db.session.commit()
+                    # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
+                    db.engine.execute("UPDATE Matches SET punti1={} WHERE id={}"
+                                      .format(self.match.punti1, self.match.id))
             if move1 is None or (move2.prediction == result and move1.prediction != result):
                 with self.app.app_context():
                     self.match.increment_2()
-                    db.session.commit()
+                    # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
+                    db.engine.execute("UPDATE Matches SET punti2={} WHERE id={}"
+                                      .format(self.match.punti2, self.match.id))
 
         match_over = False
         if self.match.punti1 == 12:
             with self.app.app_context():
-                self.match.user1.increment_wins()
-                db.session.commit()
+                # non possiamo usare né user1 né user2 né db.engine.commit() nel thread quindi tutto manuale
+                db.engine.execute("UPDATE Users SET vittorie=vittorie+1 WHERE id={}"
+                                  .format(self.match.userid1))
+                db.engine.execute("UPDATE Users SET sconfitte=sconfitte+1 WHERE id={}"
+                                  .format(self.match.userid2))
             match_over = True
         elif self.match.punti2 == 12:
             with self.app.app_context():
-                self.match.user2.increment_wins()
-                db.session.commit()
+                # non possiamo usare né user1 né user2 né db.engine.commit() nel thread quindi tutto manuale
+                db.engine.execute("UPDATE Users SET vittorie=vittorie+1 WHERE id={}"
+                                  .format(self.match.userid2))
+                db.engine.execute("UPDATE Users SET sconfitte=sconfitte+1 WHERE id={}"
+                                  .format(self.match.userid1))
             match_over = True
 
         next_round_start = None if match_over\

@@ -40,6 +40,8 @@ def set_move(userid, match_id):
     e registra la mossa usando match.set_move()
     ;:return: se il token è buono, restituirà OK, altrimenti bad token
     """
+    if not match_id.isdigit():
+        return "invalid match_id", 400
     if match.set_move(match_id, userid, request.form["hand"], request.form["prediction"]):
         return "OK"
     else:

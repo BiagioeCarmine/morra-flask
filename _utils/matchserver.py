@@ -67,7 +67,7 @@ class MatchServer:
                 self.match.confirmed = True
                 # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
                 db.engine.execute("UPDATE Matches SET confirmed=TRUE WHERE id={}".format(self.match.id))
-            eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds)
+            eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds+consts.EXTRA_WAIT_SECONDS/2)
             print("iniziata partita", flush=True)
             self.start_match()
         else:
@@ -81,7 +81,7 @@ class MatchServer:
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
         eventlet.sleep((start_time - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds+
-                       (consts.EXTRA_WAIT_SECONDS*1000)/2)
+                       consts.EXTRA_WAIT_SECONDS/2)
         self.play_round()
 
     def get_player_1_move(self):
@@ -128,6 +128,8 @@ class MatchServer:
         """
         move1 = self.get_player_1_move()
         move2 = self.get_player_2_move()
+        print("should have ran between {} and {}".format(self.match.start_time, self.match.first_round_results))
+        print("ran playround at ", datetime.datetime.now().isoformat())
 
         if move1 is None and move2 is None:
             print("Non ci sono state mosse questo round")

@@ -72,6 +72,7 @@ def get_queue_status(user: int):
     if match is None:
         if not user_in_queue(user):
             return {
+                "created": False,
                 "inQueue": False
             }
         next_poll = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=consts.QUEUE_STATUS_POLL_SECONDS)

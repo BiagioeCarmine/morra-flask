@@ -178,5 +178,6 @@ class Match(db.Model):
             "punti2": self.punti2,
             "confirmed": self.confirmed,
             "finished": self.finished,
-            "start_time": self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat()
+            "start_time": self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat(),
+            "first_round_results": self.first_round_results.replace(tzinfo=datetime.timezone.utc).isoformat()
         }

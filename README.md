@@ -312,6 +312,7 @@ any, or something like this if there are some:
     "punti1": 12,
     "punti2": 5,
     "start_time": "2021-04-28T07:20:20+00:00",
+    "first_round_results": "2021-04-28T07:20:30+00:00",
     "userid1": 1,
     "userid2": 2
   },
@@ -322,6 +323,7 @@ any, or something like this if there are some:
     "punti1": 2,
     "punti2": 0,
     "start_time": "2021-04-28T07:48:20+00:00",
+    "first_round_results": "2021-04-28T07:48:30+00:00",
     "userid1": 2,
     "userid2": 1
   },
@@ -332,6 +334,7 @@ any, or something like this if there are some:
     "punti1": 0,
     "punti2": 0,
     "start_time": "2021-04-28T07:50:20+00:00",
+    "first_round_results": "2021-04-28T07:50:30+00:00",
     "userid1": 3,
     "userid2": 1
   }
@@ -354,6 +357,7 @@ Example output for `/matches/1`:
   "punti1": 12,
   "punti2": 5,
   "start_time": "2021-04-28T07:20:20+00:00",
+  "first_round_results": "2021-04-28T07:20:30+00:00",
   "userid1": 1,
   "userid2": 2
 }
@@ -397,6 +401,7 @@ Example output for `/matches/5/last_round`:
   "hand1": "1",
   "hand2": "2",
   "next_round_start": "2021-04-28T12:23:40.267734+00:00",
+  "next_round_results": "2021-04-28T12:23:50.267734+00:00",
   "prediction1": "3",
   "prediction2": "5"
 }

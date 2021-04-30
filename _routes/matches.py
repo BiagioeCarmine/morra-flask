@@ -53,4 +53,6 @@ def last_round(match_id):
     if not match_id.isdigit():
         return "invalid match_id", 400
     res = match.get_round_result(match_id)
+    if res.get("next_round_start") is None:
+        return "not found", 404
     return jsonify(res)

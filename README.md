@@ -389,8 +389,8 @@ If the request is valid, the server will return `OK` and status code 200.
 #### GET `/matches/<match_id>/last_round`
 
 This route is used to get the results from the last round that has been played for the match with the specified
-`match_id`. It returns `invalid match_id` with status code 400 if the match id is not a number, and a completely empty
-response body if the match doesn't exist or no rounds have been played (to avoid accessing the database for this).
+`match_id`. It returns `invalid match_id` with status code 400 if the match id is not a number, and `not found` with
+status code 404 if the match doesn't exist or no rounds have been played (to avoid accessing the database for this).
 
 Example output for `/matches/5/last_round`:
 

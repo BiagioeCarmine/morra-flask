@@ -98,7 +98,7 @@ This route takes a JWT token in the `Authorization`
 header field, in the standard HTTP bearer token format:
 `Authorization: Bearer <jwt>` and returns one of the following:
 
-* `OK` with status code 200 if the header is present and formatted 
+* `{id: <user_id>}` with status code 200 if the header is present and formatted 
 correctly, and the JWT is valid;
 * `missing Authorization header` with status code 400 if there is no `Authorization` header; 
 * `bad Authorization string` with status code 400 if the `Authorization` header

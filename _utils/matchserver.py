@@ -12,8 +12,8 @@ class BadMoveError(Exception):
 class Move:
     def __init__(self, hand: int, prediction: int):
         """
-        :param hand: 1<=5
-        :param prediction: 2<=10
+        :param hand: 1<=hand<=5
+        :param prediction: 2<=prediction<=10
         """
         if hand < 1 or hand > 5 or prediction < 2 or prediction > 10:
             raise BadMoveError
@@ -32,10 +32,10 @@ class MatchServer:
     che mette tutto su redis e rende possibile ai client di ottenere quei dati, per poi chiamare next_round,
     che quando arriverà il momento del prossimo round chiamerà di nuovo play_round.
     """
+
     def __init__(self, match: models.Match, app):
         self.match = match
         self.app = app
-        self.skipped_rounds = 0
         print("creata partita", flush=True)
 
     def set_round_results(self, move1, move2, next_round_start, next_round_results):
@@ -47,7 +47,7 @@ class MatchServer:
         if move2 is not None:
             redis.redis_db.hset(name, "hand2", move2.hand)
             redis.redis_db.hset(name, "prediction2", move2.prediction)
-        redis.redis_db.hset(name, "cur_points1", self.match.    punti1)
+        redis.redis_db.hset(name, "cur_points1", self.match.punti1)
         redis.redis_db.hset(name, "cur_points2", self.match.punti2)
         redis.redis_db.hset(name, "next_round_start",
                             "over" if next_round_start is None else next_round_start.isoformat())
@@ -59,7 +59,7 @@ class MatchServer:
         Entry point della partita
         """
         eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds
-                       - (consts.MATCH_START_DELAY-consts.ROUND_MOVE_WAIT_SECONDS))
+                       - (consts.MATCH_START_DELAY - consts.ROUND_MOVE_WAIT_SECONDS))
         # deal with match confirmation
         if redis.redis_db.get("match for user " + str(self.match.userid1)) is None and \
                 redis.redis_db.get("match for user " + str(self.match.userid2)) is None:
@@ -67,7 +67,7 @@ class MatchServer:
                 self.match.confirmed = True
                 # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
                 db.engine.execute("UPDATE Matches SET confirmed=TRUE WHERE id={}".format(self.match.id))
-            eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds+consts.EXTRA_WAIT_SECONDS/2)
+            eventlet.sleep((self.match.start_time - datetime.datetime.now()).seconds + consts.EXTRA_WAIT_SECONDS / 2)
             print("iniziata partita", flush=True)
             self.start_match()
         else:
@@ -80,8 +80,8 @@ class MatchServer:
         """
         redis.redis_db.delete("match {} player 1".format(self.match.id))
         redis.redis_db.delete("match {} player 2".format(self.match.id))
-        eventlet.sleep((start_time - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds+
-                       consts.EXTRA_WAIT_SECONDS/2)
+        eventlet.sleep((start_time - datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)).seconds +
+                       consts.EXTRA_WAIT_SECONDS / 2)
         self.play_round()
 
     def get_player_1_move(self):
@@ -130,21 +130,12 @@ class MatchServer:
         move2 = self.get_player_2_move()
         print("should have ran between {} and {}".format(self.match.start_time, self.match.first_round_results))
         print("ran playround at ", datetime.datetime.now().isoformat())
+        match_over = False
 
         if move1 is None and move2 is None:
             print("Non ci sono state mosse questo round")
-            if self.skipped_rounds == 0:
-                print("è la prima volta che succede")
-                self.skipped_rounds += 1
-                next_round_start = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) +\
-                                   datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
-                next_round_results = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) +\
-                                   datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS+consts.EXTRA_WAIT_SECONDS)
-                self.set_round_results(None, None, next_round_start, next_round_results)
-                return self.next_round(next_round_start, next_round_results)
-            else:
-                print("terminiamo anticipatamente la partita")
-                return self.end_match()
+            print("terminiamo anticipatamente la partita")
+            return self.end_match()
 
         if move1 is None:
             with self.app.app_context():
@@ -174,7 +165,6 @@ class MatchServer:
                     db.engine.execute("UPDATE Matches SET punti2={} WHERE id={}"
                                       .format(self.match.punti2, self.match.id))
 
-        match_over = False
         if self.match.punti1 == 12:
             with self.app.app_context():
                 # non possiamo usare né user1 né user2 né db.engine.commit() nel thread quindi tutto manuale
@@ -192,8 +182,8 @@ class MatchServer:
                                   .format(self.match.userid1))
             match_over = True
 
-        next_round_start = None if match_over\
-            else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)+\
+        next_round_start = None if match_over \
+            else datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + \
                  datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS)
         next_round_results = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + \
                              datetime.timedelta(seconds=consts.ROUND_MOVE_WAIT_SECONDS + consts.EXTRA_WAIT_SECONDS)

@@ -1,6 +1,5 @@
 from _utils import redis, models
 
-
 """
 Cose di utilità per far funzionare le route di /match.
 """

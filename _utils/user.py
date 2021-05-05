@@ -1,7 +1,9 @@
+import os
+
+import jwt
+
 from _utils import models, db, consts
 
-import os
-import jwt
 """
 Cose di utilità per gestire gli utenti
 """

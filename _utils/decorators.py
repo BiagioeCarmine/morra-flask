@@ -19,6 +19,7 @@ class FormValidatorDecorator:
     Come classe perché cambia a seconda dei campi
     che serve validare e deve essere generico.
     """
+
     def __init__(self, required_fields, validators):
         self.required_fields = required_fields
         self.validators = validators
@@ -44,16 +45,17 @@ class FormValidatorDecorator:
                     bad_fields.append(field)
 
             if missing_fields:
-                abort(Response("missing fields "+str(missing_fields), status=400))
+                abort(Response("missing fields " + str(missing_fields), status=400))
 
             print("got all fields")
 
             if bad_fields:
-                abort(Response("invalid fields "+str(bad_fields), status=400))
+                abort(Response("invalid fields " + str(bad_fields), status=400))
 
             print("all fields OK")
 
             return f(*args, **kwargs)
+
         return decorated
 
 
@@ -76,4 +78,5 @@ def auth_decorator(f):
         Decorator che verifica se il jwt è presente ed è valido.
         """
         return f(get_user_id(), *args, **kwargs)
+
     return decorated

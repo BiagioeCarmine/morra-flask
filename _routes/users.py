@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request, Response
 
 from _utils import models, decorators, user
 
-
 users = Blueprint('users', __name__, url_prefix="/users")
 
 """
@@ -49,4 +48,3 @@ def login():
         return user.login(request.form["username"], request.form["password"])
     except user.BadCredentialsError:
         return Response("bad credentials", status=401)
-

@@ -1,7 +1,8 @@
+import datetime
+
 from bcrypt import hashpw, gensalt, checkpw
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
-import datetime
 
 from _utils import consts, db
 
@@ -154,7 +155,7 @@ class Match(db.Model):
         self.punti1 = 0
         self.punti2 = 0
         self.start_time = start_time
-        self.first_round_results = start_time+datetime.timedelta(seconds=consts.EXTRA_WAIT_SECONDS)
+        self.first_round_results = start_time + datetime.timedelta(seconds=consts.EXTRA_WAIT_SECONDS)
         self.userid1 = userid1
         self.userid2 = userid2
         self.confirmed = False

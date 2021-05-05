@@ -1,10 +1,10 @@
 import datetime
 
 import eventlet
+from flask import current_app
 from redis import WatchError
 
 from _utils import redis, models, matchserver, consts, db
-from flask import current_app
 
 """
 Nuova architettura matchmaking senza usare socket.
@@ -15,7 +15,7 @@ Ho scritto tutto sul README quindi non necessita di grandi introduzioni.
 
 def user_in_queue(user):
     return str(user).encode("utf-8") in redis.redis_db.smembers("public_queue") or \
-        str(user).encode("utf-8") in redis.redis_db.smembers("private_queue")
+           str(user).encode("utf-8") in redis.redis_db.smembers("private_queue")
 
 
 def URI_for_match(match):
@@ -75,7 +75,8 @@ def get_queue_status(user: int):
                 "created": False,
                 "inQueue": False
             }
-        next_poll = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=consts.QUEUE_STATUS_POLL_SECONDS)
+        next_poll = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(
+            seconds=consts.QUEUE_STATUS_POLL_SECONDS)
         eventlet.spawn(check_user_poll, user, cur_poll, next_poll)
         return {
             "inQueue": True,
@@ -107,7 +108,9 @@ def create_match(user1: int, user2: int):
     """
     print("creating match between {} and {}".format(user1, user2), flush=True)
     # fra 10 sec inizia la partita
-    match = models.Match(user1, user2, datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=consts.MATCH_START_DELAY))
+    match = models.Match(user1, user2,
+                         datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(
+                             seconds=consts.MATCH_START_DELAY))
     print(match, flush=True)
     db.session.add(match)
     db.session.commit()

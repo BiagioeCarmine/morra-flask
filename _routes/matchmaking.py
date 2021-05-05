@@ -1,5 +1,4 @@
-import eventlet
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify
 
 from _utils import matchmaking, decorators
 

@@ -1,13 +1,11 @@
 import os
 
-import jwt
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request
 
 from _utils import models, match, consts, decorators
 
 key_from_env = os.getenv("JWT_KEY")
 jwt_key = consts.JWT_TEST_KEY if key_from_env is None else key_from_env
-
 
 matches = Blueprint('matches', __name__, url_prefix="/matches")
 

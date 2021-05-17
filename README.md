@@ -8,8 +8,7 @@ This documentation is split in two sections:
 2. [Architecture description](#architecture)
 
 The second part in particular is way too long, detailed and pretending to be serious and fun at the same time for its
-own good, but it was written by someone who is weird enough to have enjoyed the process so much to have struggled to
-stop writing incoherent, nonsensical and pretentious sentences about a mediocre piece of software.
+own good.
 
 # API Reference
 
@@ -594,6 +593,10 @@ which is a better option IMO than trying to manage the delay on the client side,
 and especially because, being a mobile app, we can't update the frontend code very quickly on most or all of the users'
 devices in case we realize the needs change.
 
+This could alternatively be managed by evaluating whether an user needs to be deleted from the queue whenever another
+matchmaking-related request is received.
+
+
 ### How we manage playing rounds
 
 Each time a match is created, the server spawns a green thread that acts as the match server, coordinating the clients
@@ -612,6 +615,11 @@ which affects directly the user experience when playing a match in a negative wa
 by adding animations and other entertaining bits to keep the user busy while the client waits for the server to do its
 thing.
 
+This could alternatively be managed by calculating the last round results when a client requests the results for the
+last round, or when the last client sends the user's move, and by adding flags in Redis to make sure the GET request
+results are only given out when they are ready. This would reduce the time to get the results to the minimum necessary,
+but would make it unpredictable and potentially inconsistent.
+
 ### WebSocket and similar things, a.k.a. the elephant in the room
 
 Could we have used a real-time communication protocol instead? Probably, and this would have eliminated some of the issues,
@@ -627,16 +635,3 @@ We didn't consider pure WebSocket too much honestly, but our lack of experience 
 that uses WebSocket for most of the exchanges between client and server meant that some of the challenges we thought
 we could face now (in the initial implementation) and in the future (if we ever get users) could have meant wasting more
 time than it has taken us to write a slightly more complex (and *a lot* slower) system that relies solely on polling.
-
-# Final note on this README file
-
-I've written this documentation at various times and in various states of mind.\
-As is particularly the case for this document but, to a lesser extent, for the project in its entirety (with us not
-being particularly skilled and experienced with this particular stack) it's not to be taken too seriously and
-I'm sure, for example, that there is some British/American English inconsistency (I noticed, for example, that there were
-places where I used *behavior* and others where I used *behaviour*). I really haven't taken the time to read it all back
-and I wouldn't ask anyone to proofread something I'm not even going to take the time to read back myself. I'm sorry to
-those who embark on the depressing adventure of reading my writing (or, perish the thought, my code), but at the same time I'm
-glad you don't have to see my handwriting.
-
-This last paragraph above, when read back, is so bad to read that it perfectly exemplifies what I mean to say in it.

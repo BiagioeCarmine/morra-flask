@@ -7,6 +7,10 @@ This documentation is split in two sections:
 1. [HTTP API Reference](#api-reference)
 2. [Architecture description](#architecture)
 
+The second part in particular is way too long, detailed and pretending to be serious and fun at the same time for its
+own good, but it was written by someone who is weird enough to have enjoyed the process so much to have struggled to
+stop writing incoherent, nonsensical and pretentious sentences about a mediocre piece of software.
+
 # API Reference
 
 The API exposes multiple HTTP routes.
@@ -237,7 +241,7 @@ or `multipart/form-data` format containing one parameter:
 * `type` set to `public` or `private`.
 
 You can expect the same responses as the ones returned by [GET `/users/verify`](#get-usersverify) if there is an issue
-with the `Authorization` header, and the same behavior as [POST `/users/signup`](#post-userssignup) if the form is
+with the `Authorization` header, and the same behaviour as [POST `/users/signup`](#post-userssignup) if the form is
 missing or invalid.
 
 If the request is valid, the route adds the user to the chosen matchmaking queue, and this can result in one of two
@@ -274,7 +278,7 @@ or `multipart/form-data` format containing one parameter:
 * `user`, the ID of the user to play with.
 
 You can expect the same responses as the ones returned by [GET `/users/verify`](#get-usersverify) if there is an issue
-with the `Authorization` header, and the same behavior as [POST `/users/signup`](#post-userssignup) if the form is
+with the `Authorization` header, and the same behaviour as [POST `/users/signup`](#post-userssignup) if the form is
 missing or invalid.
 
 If the request is valid and the user is online, the response the following, with `1` replaced by the match ID:
@@ -377,7 +381,7 @@ or `multipart/form-data` format containing two parameters:
 * `prediction`, the number the player would shout in a real game.
 
 You can expect the same responses as the ones returned by [GET `/users/verify`](#get-usersverify) if there is an issue
-with the `Authorization` header, and the same behavior as [POST `/users/signup`](#post-userssignup) if the form is
+with the `Authorization` header, and the same behaviour as [POST `/users/signup`](#post-userssignup) if the form is
 missing or invalid.
 
 If the match ID is not a number, it will return `invalid match_id` with status code 400.
@@ -518,10 +522,121 @@ Polling requests to verify the confirmed status will necessarily have to be more
 
 ## Playing the match
 
+Now, though, let's move on to a more specific anal
 If a match is confirmed, the clients have 15 seconds from the creation of the match to communicate
 the user's move for the first round. The server will respond by communicating the time and URL
 to poll to get the results for the current round. If one of the clients fails to perform these
 requests, they will be considered disconnected and the match will finish and counted as a loss
 for the disconnecting user and a win for the other user.
 
+## How we manage timing, a.k.a. where the dirty laundry might be
 
+The aspect of the implementation that is most likely to be sub-optimal is the implementation of timing: how we manage
+the MM queue and how we manage playing rounds in terms of making sure responses arrive in time and that the server
+responds in the right way.
+
+To talk about this, we are [first](#the-running-theme) going to talk about what we're doing and [how we can improve](#a-different-smarter-way-we-could-have-done-things)
+in general our approach to solving this problem, then we are going to go over specific implementation details for
+[the matchmaking queue](#how-we-manage-the-queue) and [the match rounds mechanism](#how-we-manage-playing-rounds).
+
+### The running theme
+
+Of course, managing a matchmaking queue is different than playing rounds of a match, but the general approach we took
+is the same: each time there is a moment in time before which a request is expected, the server is going to have a thread
+waiting for that time and checking whether a request was actually made by the client.
+
+The advantage of our current approach is that the server deals with everything in real time when it needs to be dealt
+with, so in every moment the server's state reflects what is expected (if the user is inactive, they *will* be kicked out
+of the queue when the time comes, and the same goes for match rounds when an user doesn't set a move).
+
+A potential disadvantage is the complexity (both computational and in terms of code) of our app. This is partially
+mitigated by the use of lightweight green threads in place of fully fledged OS threads, but we really don't know
+whether the next solution I'm going to propose _would have been_/_would be_ better.
+
+Another disadvantage is that network communication (especially using HTTP requests and not stuff like TCP sockets) is
+inherently slow, so we need to have grace times that allow the request to be received and the log to be updated before
+the user is kicked out of the queue or the match is terminated early.
+
+#### A different (smarter?) way we could have done things
+
+_This section is going to be written mostly in first person as it is mostly a personal reflection based on past personal
+experience_.
+
+Borrowing from my (Carmine Zaccagnino, mostly the *backend guy* for this project) previous very brief experiences with
+situations in which optimising CPU usage was the whole point of what I was doing, straight-up simulating something isn't
+necessarily the most efficient approach to solving a problem.
+
+This means that, of course, having the backend app's state mimic the more abstract state of the app in terms of users
+in the queue and match confirmation/termination status maybe could be sacrificed for the sake of keeping things easy for
+us when maintaining the code and the server when executing it, and potentially for the sake of eliminating the grace
+times that make especially the match playing part a bit clunky and annoying for the end user.
+
+More specifically, instead of having a thread for each check we need to do, we could check on subsequent requests,
+given that any effects of a client making or failing to make a request will only be noticed by the client when it
+requests something, obviously.
+
+This, though, would increase reliance on data stores like Redis for relatively longer-term data storage (still short-term,
+if the app sees any kind of significant usage, which *strangely* feels like it's not very likely D:), which isn't a
+worry with the current architecture and implementation, as each request's side-effects are managed when they could start
+having an effect and not when they actually might have an effect, if this makes any sense.
+
+If that sentence or this whole section (maybe this entire document) *doesn't*, maybe this next bit will, as it goes
+more specifically into the details of each of the two cases in which timing arises as an issue in our app.
+
+### How we manage the queue
+
+Currently, each time an user is added to a queue a thread (more specificaly, a lightweight Eventlet green thread) is
+spawned, waiting until the `pollBefore` time, and checking whether the user has polled (we store the latest poll data
+in Redis).
+
+Of course, networks and stuff are slow, so we need to allow for a grace time before we kick the user out of the queue,
+which is a better option IMO than trying to manage the delay on the client side, partly because it feels less intuitive
+and especially because, being a mobile app, we can't update the frontend code very quickly on most or all of the users'
+devices in case we realize the needs change.
+
+### How we manage playing rounds
+
+Each time a match is created, the server spawns a green thread that acts as the match server, coordinating the clients
+and giving them the results.
+
+At the heart of this is the part when client interaction comes into play: when a round _ends_ virtually and the clients
+have to send the user's move to the server, and then request the round results.
+
+This three-way dependency is the main cause of annoyance when we look at how the backend implementation affects the user
+experience: the code that checks whether the users have set their move, computes the round results, and saves them on
+Redis for retrieval by the client through the `/matches/<id>/last_round` route.
+
+This means that the code has to run in between those two moments in time, and this means that the time between those two
+moments has to be delayed to avoid issues, and currently that delay is quite long (we are looking at shortening it),
+which affects directly the user experience when playing a match in a negative way. This is mitigated in the frontend
+by adding animations and other entertaining bits to keep the user busy while the client waits for the server to do its
+thing.
+
+### WebSocket and similar things, a.k.a. the elephant in the room
+
+Could we have used a real-time communication protocol instead? Probably, and this would have eliminated some of the issues,
+and many implementation details could have been delegated to the libraries available for such protocols.
+
+Why didn't we do that? That's an hard question to answer. Initially, we wrote this backend's MM system using Socket.io,
+but we encountered too many issues when testing that were imputable to Socket.io that we decided against it early on.
+
+Also, we're not sure about Socket.io Android integration, but knowing how bad it is with Flutter we were skeptical right
+from the start.
+
+We didn't consider pure WebSocket too much honestly, but our lack of experience with working with and writing an app
+that uses WebSocket for most of the exchanges between client and server meant that some of the challenges we thought
+we could face now (in the initial implementation) and in the future (if we ever get users) could have meant wasting more
+time than it has taken us to write a slightly more complex (and *a lot* slower) system that relies solely on polling.
+
+# Final note on this README file
+
+I've written this documentation at various times and in various states of mind.\
+As is particularly the case for this document but, to a lesser extent, for the project in its entirety (with us not
+being particularly skilled and experienced with this particular stack) it's not to be taken too seriously and
+I'm sure, for example, that there is some British/American English inconsistency (I noticed, for example, that there were
+places where I used *behavior* and others where I used *behaviour*). I really haven't taken the time to read it all back
+and I wouldn't ask anyone to proofread something I'm not even going to take the time to read back myself. I'm sorry to
+those who embark on the depressing adventure of reading my writing (or, perish the thought, my code), but at the same time I'm
+glad you don't have to see my handwriting.
+
+This last paragraph above, when read back, is so bad to read that it perfectly exemplifies what I mean to say in it.

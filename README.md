@@ -532,12 +532,17 @@ Polling requests to verify the confirmed status will necessarily have to be more
 
 ## Playing the match
 
-Now, though, let's move on to a more specific anal
-If a match is confirmed, the clients have 15 seconds from the creation of the match to communicate
-the user's move for the first round. The server will respond by communicating the time and URL
-to poll to get the results for the current round. If one of the clients fails to perform these
+If a match is confirmed, the clients have [`ROUND_MOVE_WAIT_SECONDS` (as defined in `consts.py`)](_utils/consts.py) seconds
+to set the user's move for the first round. The time at which to send this request is found in the match data as
+`start_time`. Then, at the time specified in `first_round_results` in the match data, the client can perform its first
+GET request to the `/matches/<match_id>/last_round` route, which will return the current points for each player in the match,
+hand and prediction for the last round for both players in the match and the time at which to
+perform the POST and GET requests for the next round. And then it goes on until `next_round_start`
+is set to `over`, meaning the match is finished. If one of the clients fails to perform these
 requests, they will be considered disconnected and the match will finish and counted as a loss
 for the disconnecting user and a win for the other user.
+
+More on how this works in the section about timing which follows this one.
 
 ## How we manage timing, a.k.a. where the dirty laundry might be
 

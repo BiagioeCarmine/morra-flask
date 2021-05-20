@@ -128,8 +128,6 @@ class MatchServer:
         """
         move1 = self.get_player_1_move()
         move2 = self.get_player_2_move()
-        print("should have ran between {} and {}".format(self.match.start_time, self.match.first_round_results))
-        print("ran playround at ", datetime.datetime.now().isoformat())
         match_over = False
 
         if move1 is None and move2 is None:
@@ -138,12 +136,14 @@ class MatchServer:
             return self.end_match()
 
         if move1 is None:
+            print("errore: niente mossa giocatore 1")
             with self.app.app_context():
                 self.match.increment_2()
                 # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
                 db.engine.execute("UPDATE Matches SET punti2={} WHERE id={}"
                                   .format(self.match.punti2, self.match.id))
         elif move2 is None:
+            print("errore: niente mossa giocatore 2")
             with self.app.app_context():
                 self.match.increment_1()
                 # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
@@ -153,12 +153,14 @@ class MatchServer:
             result = move1.hand + move2.hand
 
             if move2 is None or (move1.prediction == result and move2.prediction != result):
+                print("vince il round il giocatore 1, indovinando il risultato {}".format(result))
                 with self.app.app_context():
                     self.match.increment_1()
                     # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente
                     db.engine.execute("UPDATE Matches SET punti1={} WHERE id={}"
                                       .format(self.match.punti1, self.match.id))
             if move1 is None or (move2.prediction == result and move1.prediction != result):
+                print("vince il round il giocatore 2, indovinando il risultato {}".format(result))
                 with self.app.app_context():
                     self.match.increment_2()
                     # non possiamo usare db.engine.commit() nel thread quindi lo facciamo manualmente

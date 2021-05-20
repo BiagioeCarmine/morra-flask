@@ -412,6 +412,17 @@ Example output for `/matches/5/last_round`:
 
 # Architecture
 
+1. [User creation and authentication](#user-creation-and-authentication)
+2. [Matchmaking](#matchmaking-architecture)
+   * [The idea](#the-idea)
+   * [The implementation](#the-implementation)
+3. [Playing the match](#playing-the-match)
+4. [How we manage timing](#how-we-manage-timing-aka-where-the-dirty-laundry-might-be)
+    * [The running theme](#the-running-theme)
+    * [How we manage the queue](#how-we-manage-the-queue)
+    * [How we manage playing rounds](#how-we-manage-playing-rounds)
+
+
 The big picture is the following: the client interacts with an API that directly
 causes or looks for a change in the main MySQL database (which contains data
 for users and matches) or the Redis key-value store (which contains the state
@@ -439,7 +450,7 @@ be stored in the database using the BCrypt password hashing algorithm. The numbe
 of salting iterations is determined by testing the server's performance and
 making a judgement call on the compromise between security and speed.
 
-## Matchmaking
+## Matchmaking architecture
 
 We decided against using WebSockets for a number of reasons, so we've designed
 our own matchmaking system, still based around a pub/sub model but using HTTP
@@ -611,7 +622,7 @@ Redis for retrieval by the client through the `/matches/<id>/last_round` route.
 
 This means that the code has to run in between those two moments in time, and this means that the time between those two
 moments has to be delayed to avoid issues, and currently that delay is quite long (we are looking at shortening it),
-which affects directly the user experience when playing a match in a negative way. This is mitigated in the frontend
+which directly affects the user experience when playing a match in a negative way. This is mitigated in the frontend
 by adding animations and other entertaining bits to keep the user busy while the client waits for the server to do its
 thing.
 

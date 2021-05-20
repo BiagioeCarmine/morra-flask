@@ -128,6 +128,8 @@ def add_to_public_queue(user: int):
     """
     Aggiungiamo l'utente alla coda pubblica
     :param user: ID dell'utente da aggiungere
+    :return: tuple with a boolean indicating whether or not a match has been created and either the math ID of the
+    created match or the queue status dict to respond with
     """
     try:
         print("aggiungendo a public queue", flush=True)

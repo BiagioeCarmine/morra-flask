@@ -556,6 +556,8 @@ in general our approach to solving this problem, then we are going to go over sp
 
 ### The running theme
 
+The philosophy of our approach is one of consistency (in Redis) over performance or efficiency.
+
 Of course, managing a matchmaking queue is different than playing rounds of a match, but the general approach we took
 is the same: each time there is a moment in time before which a request is expected, the server is going to have a thread
 waiting for that time and checking whether a request was actually made by the client.

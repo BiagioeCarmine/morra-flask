@@ -11,7 +11,17 @@ Route usate per gestire gli utenti.
 
 @users.route("/", methods=['GET'])
 def get_users():
-    result = user.get_all()
+    order_by = request.args.get('order_by')
+    descending = request.args.get('descending', "false")
+    n = request.args.get('n')
+    if descending == "true":
+        d = True
+    else:
+        d = False
+    if order_by is None:
+        result = user.get_all()
+    else:
+        result = user.query_ordered(order_by=order_by, descending=d, n=n)
     return jsonify([u.jsonify() for u in result])
 
 

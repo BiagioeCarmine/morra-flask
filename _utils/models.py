@@ -1,7 +1,7 @@
 import datetime
 
 from bcrypt import hashpw, gensalt, checkpw
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Computed
 from sqlalchemy.orm import relationship
 
 from _utils import consts, db
@@ -48,7 +48,7 @@ class User(db.Model):
     admin = Column(Boolean)
     vittorie = Column(Integer)
     sconfitte = Column(Integer)
-    punteggio = Column(Integer)
+    punteggio = Column(Integer, Computed('3 * vittorie-sconfitte', persisted=False))
 
     def __init__(self, username, password):
         """

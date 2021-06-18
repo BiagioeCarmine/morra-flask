@@ -1,6 +1,7 @@
 import os
 
 import jwt
+from sqlalchemy import text
 
 from _utils import models, db, consts
 
@@ -18,6 +19,33 @@ class DuplicateUserError(Exception):
 
 class BadCredentialsError(Exception):
     pass
+
+
+def valid_column(c: str):
+    columns = models.User.metadata.tables["Users"].columns.keys()
+    print(columns)
+    for column in columns:
+        if column == c:
+            return True
+    return False
+
+
+def query_ordered(order_by: str, n=None, descending=False):
+    c = valid_column(order_by)
+    if not c:
+        print("Passata descrizione colonna non valida: {}".format(order_by))
+        return get_all()
+    if not n.isdigit():
+        print("Passato numero di risultati non numerico: {}".format(n))
+        n = None
+    if descending:
+        # safe perché controlliamo che order_by sia una colonna e basta
+        query = models.User.query.select_from(models.User).order_by(text("{} desc".format(order_by)))
+    else:
+        query = models.User.query.select_from(models.User).order_by(order_by)
+    if n is not None:
+        query = query.limit(int(n))
+    return query.all()
 
 
 def get(userid):

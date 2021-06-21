@@ -60,7 +60,6 @@ class User(db.Model):
         self.password = hashpw(password, gensalt(consts.BCRYPT_SALT_ROUNDS))
         self.vittorie = 0
         self.sconfitte = 0
-        self.punteggio = 0
         self.admin = False
 
     def check_password(self, password):

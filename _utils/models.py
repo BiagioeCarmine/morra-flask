@@ -145,7 +145,7 @@ class Match(db.Model):
     userid2 = Column(Integer, ForeignKey('Users.id'), nullable=False)
     punti1 = Column(Integer, nullable=False)
     punti2 = Column(Integer, nullable=False)
-    confirmation_time = Column(DateTime, nullable=False)
+    confirmation_time = Column(DateTime)
     start_time = Column(DateTime, nullable=False)
     first_round_results = Column(DateTime, nullable=False)
     user1 = relationship("User", foreign_keys=userid1)
@@ -180,6 +180,7 @@ class Match(db.Model):
             "punti2": self.punti2,
             "confirmed": self.confirmed,
             "finished": self.finished,
+            "confirmation_time": self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat(),
             "start_time": self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat(),
             "first_round_results": self.first_round_results.replace(tzinfo=datetime.timezone.utc).isoformat()
         }

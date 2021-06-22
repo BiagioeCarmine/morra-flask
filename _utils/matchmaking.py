@@ -108,9 +108,11 @@ def create_match(user1: int, user2: int):
     """
     print("creating match between {} and {}".format(user1, user2), flush=True)
     # fra 10 sec inizia la partita
-    match = models.Match(user1, user2,
-                         datetime.datetime.now().replace(tzinfo=datetime.timezone.utc) + datetime.timedelta(
-                             seconds=consts.MATCH_START_DELAY))
+    cur_dt_with_tz = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+    start_time = cur_dt_with_tz + datetime.timedelta(seconds=consts.MATCH_START_DELAY)
+    confirmation_time = start_time - datetime.timedelta(
+        seconds=consts.MATCH_START_DELAY - consts.ROUND_MOVE_WAIT_SECONDS)
+    match = models.Match(user1, user2, confirmation_time, start_time)
     print(match, flush=True)
     db.session.add(match)
     db.session.commit()

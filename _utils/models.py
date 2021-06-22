@@ -145,14 +145,16 @@ class Match(db.Model):
     userid2 = Column(Integer, ForeignKey('Users.id'), nullable=False)
     punti1 = Column(Integer, nullable=False)
     punti2 = Column(Integer, nullable=False)
+    confirmation_time = Column(DateTime, nullable=False)
     start_time = Column(DateTime, nullable=False)
     first_round_results = Column(DateTime, nullable=False)
     user1 = relationship("User", foreign_keys=userid1)
     user2 = relationship("User", foreign_keys=userid2)
 
-    def __init__(self, userid1, userid2, start_time):
+    def __init__(self, userid1, userid2, confirmation_time, start_time):
         self.punti1 = 0
         self.punti2 = 0
+        self.confirmation_time = confirmation_time
         self.start_time = start_time
         self.first_round_results = start_time + datetime.timedelta(seconds=consts.EXTRA_WAIT_SECONDS)
         self.userid1 = userid1

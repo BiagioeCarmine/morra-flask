@@ -71,6 +71,8 @@ class MatchServer:
             print("iniziata partita", flush=True)
             self.start_match()
         else:
+            redis.redis_db.delete("match for user " + str(self.match.userid1))
+            redis.redis_db.delete("match for user " + str(self.match.userid2))
             print("partita annullata", flush=True)
             return
 

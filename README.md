@@ -52,9 +52,16 @@ Usernames must also be unique within the database.
 A valid password can be composed of any printable character,
 with the length being at least 5 characters and at most 50.
 
-### GET `/users`
+### GET `/users/`
 
-This route takes no parameters and returns an array of registered users in JSON format:
+This route takes three optional parameters: `order_by`, `descending`, and `n`.
+
+* the `order_by` parameter is used to specify the attribute to order the result by;
+* the `descending` parameter is used, when set to `true`, to specify that the list should be ordered in descending
+order, instead of the default ascending order;
+* `n` is used to specify the maximum number of entries in the result.
+
+If no parameters are given, it returns the list of registered users, like this:
 
 ~~~
 [
@@ -74,6 +81,53 @@ This route takes no parameters and returns an array of registered users in JSON 
   }
 ]
 ~~~
+
+If all three parameters are given it's possible, for example, to get a ranking of the top 5 users in the database (
+`/users/?order_by=punteggio&descending=true&n=5`):
+
+~~~
+[
+  {
+    "id": 1,
+    "punteggio": 19,
+    "sconfitte": 5,
+    "username": "carzacc",
+    "vittorie": 8
+  },
+  {
+    "id": 2,
+    "punteggio": 9,
+    "sconfitte": 6,
+    "username": "carzacc2",
+    "vittorie": 5
+  },
+  {
+    "id": 3,
+    "punteggio": 4,
+    "sconfitte": 2,
+    "username": "grimos",
+    "vittorie": 2
+  },
+  {
+    "id": 11,
+    "punteggio": 3,
+    "sconfitte": 0,
+    "username": "nicofano",
+    "vittorie": 1
+  },
+  {
+    "id": 7,
+    "punteggio": 2,
+    "sconfitte": 1,
+    "username": "prova1",
+    "vittorie": 1
+  }
+]
+~~~
+
+*Important note*: by default, Flask sends status code 308 if requests are sent to `/users` instead of `/users/`. The
+response body is exactly the same, but the different status code, for example, wreaks havoc when using the Volley HTTP
+library for an Android app without additional configuration or error handling.
 
 ### GET `/users/user/<user_id>`
 
@@ -315,6 +369,7 @@ any, or something like this if there are some:
     "punti1": 12,
     "punti2": 5,
     "start_time": "2021-04-28T07:20:20+00:00",
+    "confirmation_time": "2021-04-28T07:20:25+00:00",
     "first_round_results": "2021-04-28T07:20:30+00:00",
     "userid1": 1,
     "userid2": 2
@@ -326,6 +381,7 @@ any, or something like this if there are some:
     "punti1": 2,
     "punti2": 0,
     "start_time": "2021-04-28T07:48:20+00:00",
+    "confirmation_time": "2021-04-28T07:48:25+00:00",
     "first_round_results": "2021-04-28T07:48:30+00:00",
     "userid1": 2,
     "userid2": 1
@@ -337,6 +393,7 @@ any, or something like this if there are some:
     "punti1": 0,
     "punti2": 0,
     "start_time": "2021-04-28T07:50:20+00:00",
+    "confirmation_time": "2021-04-28T07:50:25+00:00",
     "first_round_results": "2021-04-28T07:50:30+00:00",
     "userid1": 3,
     "userid2": 1
@@ -360,6 +417,7 @@ Example output for `/matches/1`:
   "punti1": 12,
   "punti2": 5,
   "start_time": "2021-04-28T07:20:20+00:00",
+  "confirmation_time": "2021-04-28T07:20:25+00:00",
   "first_round_results": "2021-04-28T07:20:30+00:00",
   "userid1": 1,
   "userid2": 2
@@ -528,7 +586,8 @@ Since we can't be sure the waiting client will poll again when the other client 
 the match first has to be confirmed, by waiting for both clients to get the match delivered to
 them.
 
-Polling requests to verify the confirmed status will necessarily have to be more frequent.
+Instead of having the clients poll to get the confirmation status (it was like that until around mid June, before I
+realized there was a better way), the client 
 
 ## Playing the match
 

@@ -355,7 +355,7 @@ The matches management section exposes four HTTP routes.
 4. [GET `/matches/<match_id>/last_round`](#get-matchesmatch_idlast_round)
 
 
-#### GET `/matches`
+### GET `/matches`
 
 This route returns a list of the matches currently in the database. It returns an empty list (`[]`) if there aren't
 any, or something like this if there are some:
@@ -401,7 +401,7 @@ any, or something like this if there are some:
 ]
 ~~~
 
-#### GET `/matches/<match_id>`
+### GET `/matches/<match_id>`
 
 This route returns the match data for the match with the provided match ID.
 
@@ -425,7 +425,7 @@ Example output for `/matches/1`:
 ~~~
 
 
-#### POST `/matches/<match_id>/move`
+### POST `/matches/<match_id>/move`
 
 This route is used to make a move in a match..
 
@@ -447,7 +447,7 @@ If the user is not part of the match, it will return `User not in match` with st
 
 If the request is valid, the server will return `OK` and status code 200.
 
-#### GET `/matches/<match_id>/last_round`
+### GET `/matches/<match_id>/last_round`
 
 This route is used to get the results from the last round that has been played for the match with the specified
 `match_id`. It returns `invalid match_id` with status code 400 if the match id is not a number, and `not found` with

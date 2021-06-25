@@ -15,31 +15,6 @@ Moedlli di dato che usiamo nell'app.
 class User(db.Model):
     """
     Modello di utente della nostra app.
-
-    Vittorie, sconfitte e punteggio vengono
-    inizializzati a 0, sinceramente al momento
-    il punteggio non so come possiamo calcolarlo
-    in una maniera sensata, ma possiamo vedere
-    su Internet qualche metodo serio tipo l'Elo
-    che usano per gli scacchi (e qualcuno dice su
-    csgo pure), altrimenti ci inventiamo noi una
-    cosa a capocchia.
-
-    Ho già sistemato l'hashing della password,
-    l'unica cosa è che ci saranno da fare un po'
-    di prove sul server quale valore di BCRYPT_SALT_ROUNDS
-    va bene, fondamentalmente all'aumentare di quel numero
-    cresce esponenzialmente il tempo che ci mette
-    a fare l'hash ma migliora la sicurezza. Adesso è 10
-    e spero vada bene ma quei VPS gratis o economici
-    spesso fanno così schifo che tutto può essere che è
-    troppo e quindi la gente ci mette 10 anni ogni volta
-    per registrarsi o accedere.
-
-    Fondamentalmente l'utente si crea chiamando normalmente
-    il costruttore, poi tipo nella route login useremo
-    check_password che fa controllare a bcrypt se gli
-    hash corrispondono.
     """
 
     __tablename__ = 'Users'
@@ -186,7 +161,7 @@ class Match(db.Model):
         """
         d = copy.deepcopy(self.__dict__)
         del d["_sa_instance_state"]
-        d["confirmation_time"] = self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat()
         d["start_time"] = self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat()
+        d["confirmation_time"] = d["start_time"] if self.confirmation_time is None else self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat()
         d["first_round_results"] = self.first_round_results.replace(tzinfo=datetime.timezone.utc).isoformat()
         return d

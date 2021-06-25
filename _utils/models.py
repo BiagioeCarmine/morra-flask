@@ -1,3 +1,4 @@
+import copy
 import datetime
 
 from bcrypt import hashpw, gensalt, checkpw
@@ -77,13 +78,18 @@ class User(db.Model):
         return checkpw(password.encode("utf-8"), self.password.encode("utf-8"))
 
     def jsonify(self):
-        return {
-            "id": self.id,
-            "username": self.username,
-            "vittorie": self.vittorie,
-            "sconfitte": self.sconfitte,
-            "punteggio": self.punteggio
-        }
+        """
+        Non è repr o str perché altrimenti non potremmo restituire un dict, e restituendo
+        una stringa il risultato finale nelle liste non è JSON valido. Si elimina l'hash della
+        password perché non siamo così poco attenti con i dati degli utenti, si elimina admin
+        perché per il momento non serve a niente e non ha senso esporre quel valore, e si elimina
+        _sa_instance_state perché è una cosa interna di SQLAlchemy.
+        """
+        d = copy.deepcopy(self.__dict__)
+        del d["_sa_instance_state"]
+        del d["password"]
+        del d["admin"]
+        return d
 
     @staticmethod
     def validate_password(password: str):
@@ -172,15 +178,15 @@ class Match(db.Model):
         self.confirmed = True
 
     def jsonify(self):
-        return {
-            "id": self.id,
-            "userid1": self.userid1,
-            "userid2": self.userid2,
-            "punti1": self.punti1,
-            "punti2": self.punti2,
-            "confirmed": self.confirmed,
-            "finished": self.finished,
-            "confirmation_time": self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat(),
-            "start_time": self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat(),
-            "first_round_results": self.first_round_results.replace(tzinfo=datetime.timezone.utc).isoformat()
-        }
+        """
+        Non è repr o str perché altrimenti non potremmo restituire un dict, e restituendo
+        una stringa il risultato finale nelle liste non è JSON valido. Si elimina
+        _sa_instance_state perché è una cosa interna di SQLAlchemy. Vanno sistemate
+        le date per restituire un formato appropriato.
+        """
+        d = copy.deepcopy(self.__dict__)
+        del d["_sa_instance_state"]
+        d["confirmation_time"] = self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat()
+        d["start_time"] = self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat()
+        d["first_round_results"] = self.first_round_results.replace(tzinfo=datetime.timezone.utc).isoformat()
+        return d

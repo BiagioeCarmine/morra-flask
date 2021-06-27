@@ -603,7 +603,7 @@ for the disconnecting user and a win for the other user.
 
 More on how this works in the section about timing which follows this one.
 
-## How we manage timing, a.k.a. where the dirty laundry might be
+## How we manage timing
 
 The aspect of the implementation that is most likely to be sub-optimal is the implementation of timing: how we manage
 the MM queue and how we manage playing rounds in terms of making sure responses arrive in time and that the server
@@ -635,14 +635,7 @@ the user is kicked out of the queue or the match is terminated early.
 
 #### A different (smarter?) way we could have done things
 
-_This section is going to be written mostly in first person as it is mostly a personal reflection based on past personal
-experience_.
-
-Borrowing from my (Carmine Zaccagnino, mostly the *backend guy* for this project) previous very brief experiences with
-situations in which optimising CPU usage was the whole point of what I was doing, straight-up simulating something isn't
-necessarily the most efficient approach to solving a problem.
-
-This means that, of course, having the backend app's state mimic the more abstract state of the app in terms of users
+Having the backend app's state mimic the more abstract state of the app in terms of users
 in the queue and match confirmation/termination status maybe could be sacrificed for the sake of keeping things easy for
 us when maintaining the code and the server when executing it, and potentially for the sake of eliminating the grace
 times that make especially the match playing part a bit clunky and annoying for the end user.
@@ -697,7 +690,7 @@ last round, or when the last client sends the user's move, and by adding flags i
 results are only given out when they are ready. This would reduce the time to get the results to the minimum necessary,
 but would make it unpredictable and potentially inconsistent.
 
-### WebSocket and similar things, a.k.a. the elephant in the room
+### WebSocket and similar things
 
 Could we have used a real-time communication protocol instead? Probably, and this would have eliminated some of the issues,
 and many implementation details could have been delegated to the libraries available for such protocols.

@@ -1,4 +1,3 @@
-import copy
 import datetime
 
 from bcrypt import hashpw, gensalt, checkpw
@@ -60,7 +59,7 @@ class User(db.Model):
         perché per il momento non serve a niente e non ha senso esporre quel valore, e si elimina
         _sa_instance_state perché è una cosa interna di SQLAlchemy.
         """
-        d = copy.deepcopy(self.__dict__)
+        d = self.__dict__.copy()
         del d["_sa_instance_state"]
         del d["password"]
         del d["admin"]
@@ -159,7 +158,7 @@ class Match(db.Model):
         _sa_instance_state perché è una cosa interna di SQLAlchemy. Vanno sistemate
         le date per restituire un formato appropriato.
         """
-        d = copy.deepcopy(self.__dict__)
+        d = self.__dict__.copy()
         del d["_sa_instance_state"]
         d["start_time"] = self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat()
         d["confirmation_time"] = d["start_time"] if self.confirmation_time is None else self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat()

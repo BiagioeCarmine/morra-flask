@@ -162,6 +162,7 @@ class Match(db.Model):
         d = copy.deepcopy(self.__dict__)
         del d["_sa_instance_state"]
         d["start_time"] = self.start_time.replace(tzinfo=datetime.timezone.utc).isoformat()
-        d["confirmation_time"] = d["start_time"] if self.confirmation_time is None else self.confirmation_time.replace(tzinfo=datetime.timezone.utc).isoformat()
+        d["confirmation_time"] = d["start_time"] if self.confirmation_time is None else self.confirmation_time.replace(
+            tzinfo=datetime.timezone.utc).isoformat()
         d["first_round_results"] = self.first_round_results.replace(tzinfo=datetime.timezone.utc).isoformat()
         return d

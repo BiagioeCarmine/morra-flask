@@ -9,7 +9,7 @@ services:
       network: host
     env_file:
       testing_vars.env
-    entrypoint: ["./wait-for", "mysql:3306", "--", "python", "-u", "index.py"]
+    entrypoint: [ "./wait-for", "mysql:3306", "--", "python", "-u", "index.py" ]
     ports:
       - "5000:5000"
   redis:

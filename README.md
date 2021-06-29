@@ -610,10 +610,10 @@ the user is kicked out of the queue or the match is terminated early.
 
 #### A different (smarter?) way we could have done things
 
-Having the backend app's state mimic the more abstract state of the app in terms of users
-in the queue and match confirmation/termination status maybe could be sacrificed for the sake of keeping things easy for
-us when maintaining the code and the server when executing it, and potentially for the sake of eliminating the grace
-times that make especially the match playing part a bit clunky and annoying for the end user.
+Having the backend app's state mimic the more abstract state of the app in terms of users in the queue and match
+confirmation/termination status maybe could be sacrificed for the sake of keeping things easy for us when maintaining
+the code and the server when executing it, and potentially for the sake of eliminating the grace times that make
+especially the match playing part a bit clunky and annoying for the end user.
 
 More specifically, instead of having a thread for each check we need to do, we could check on subsequent requests, given
 that any effects of a client making or failing to make a request will only be noticed by the client when it requests

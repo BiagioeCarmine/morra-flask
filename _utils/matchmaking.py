@@ -22,12 +22,6 @@ def URI_for_match(match):
     return "https://morra.carminezacc.com/matches/" + str(match)
 
 
-class PubQueueResult:
-    def __init__(self, match_created, match_id=None):
-        self.match_created = match_created
-        self.match_id = match_id
-
-
 class FriendNotOnlineError(Exception):
     pass
 
@@ -128,7 +122,7 @@ def create_match(user1: int, user2: int):
 
 def add_to_public_queue(user: int):
     """
-    Aggiungiamo l'utente alla coda pubblica
+    Aggiungiamo l'utente alla coda pubblica, oppure lo facciamo giocare contro l'utente attualmente in coda, se c'è.
     :param user: ID dell'utente da aggiungere
     :return: tuple with a boolean indicating whether or not a match has been created and either the math ID of the
     created match or the queue status dict to respond with

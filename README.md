@@ -608,10 +608,10 @@ updated before the user is kicked out of the queue or the match is terminated ea
 
 #### A different (smarter?) way we could have done things
 
-Having the backend app's state mimic the more abstract state of the app in terms of users in the queue and match
-confirmation/termination status maybe could be sacrificed for the sake of keeping things easy for us when maintaining
-the code and the server when executing it, and potentially for the sake of eliminating the grace times that make
-especially the match playing part a bit clunky and annoying for the end user.
+Having the backend app's state mimic the more abstract state of the app in terms of users
+in the queue and match confirmation/termination status maybe could be sacrificed for the sake of keeping things easy for
+us when maintaining the code and the server when executing it, and potentially for the sake of eliminating the grace
+times that make especially the match playing part a bit clunky and annoying for the end user.
 
 More specifically, instead of having a thread for each check we need to do, we could check on subsequent requests, given
 that any effects of a client making or failing to make a request will only be noticed by the client when it requests
@@ -678,8 +678,3 @@ We didn't consider pure WebSocket too much honestly, but our lack of experience 
 that uses WebSocket for most of the exchanges between client and server meant that some of the challenges we thought we
 could face now (in the initial implementation) and in the future (if we ever get users) could have meant wasting more
 time than it has taken us to write a slightly more complex (and *a lot* slower) system that relies solely on polling.
-
-### Long polling
-
-A solution that we could consider to reduce traffic and make the app feel more responsive is long polling, but it would
-require a bit more work.

@@ -126,7 +126,7 @@ class MatchServer:
 
     def play_round(self):
         """
-        TODO: implementare una sorta di grace time, che crea una finestra temporale in cui inviare i risultati invece che un istante
+        Il "cuore" del match server: qui prendiamo le mosse da Redis e calcoliamo l'esito del round.
         """
         move1 = self.get_player_1_move()
         move2 = self.get_player_2_move()

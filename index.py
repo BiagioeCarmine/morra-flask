@@ -1,10 +1,10 @@
+import logging
 import os
 from os import getenv
 from sys import exit
-import logging
 
-import sentry_sdk
 import eventlet
+import sentry_sdk
 from eventlet import wsgi
 from flask import Flask
 from flask_cors import CORS
@@ -27,7 +27,7 @@ missing_vars = False
 for var in REQUIRED_ENV_VARS:
     if getenv(var) is None:
         missing_vars = True
-        print("missing env variable "+var)
+        print("missing env variable " + var)
 
 if missing_vars:
     exit(1)
@@ -36,14 +36,12 @@ if missing_vars:
 Inizializzazione Sentry per log aggregation
 """
 
-
 if os.getenv("SENTRY_ENABLED") == "1":
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN_URL"),
         integrations=[FlaskIntegration()],
         traces_sample_rate=1.0  # TODO:vedere documentazione
     )
-
 
 app = Flask(__name__)
 
@@ -56,7 +54,8 @@ db_database = getenv("MYSQL_DATABASE")
 db_user = getenv("MYSQL_USER")
 db_password = getenv("MYSQL_PASSWORD")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://{}:{}@{}/{}'.format(db_user, db_password, db_host, db_database)
+app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+mysqlconnector://{}:{}@{}/{}'.format(db_user, db_password, db_host,
+                                                                                    db_database)
 
 db.init_app(app)
 with app.app_context():
@@ -80,4 +79,3 @@ print("Avvio server morra")
 
 if __name__ == "__main__":
     wsgi.server(eventlet.listen(('', 5000)), app)
-

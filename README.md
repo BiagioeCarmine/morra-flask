@@ -459,7 +459,7 @@ Example output for `/matches/5/last_round`:
     * [The idea](#the-idea)
     * [The implementation](#the-implementation)
 3. [Playing the match](#playing-the-match)
-4. [How we manage timing](#how-we-manage-timing-aka-where-the-dirty-laundry-might-be)
+4. [How we manage timing](#how-we-manage-timing)
     * [The running theme](#the-running-theme)
     * [How we manage the queue](#how-we-manage-the-queue)
     * [How we manage playing rounds](#how-we-manage-playing-rounds)

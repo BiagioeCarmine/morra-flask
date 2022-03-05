@@ -3,7 +3,6 @@ WORKDIR /code
 RUN apk add --no-cache gcc g++ musl-dev linux-headers libffi-dev openssl-dev python3-dev
 RUN wget https://raw.githubusercontent.com/eficode/wait-for/v2.1.0/wait-for
 COPY requirements.txt requirements.txt
-COPY wait-for wait-for
 RUN pip install -r requirements.txt
 EXPOSE 5000
 ENV FLASK_RUN_HOST=0.0.0.0

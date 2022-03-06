@@ -2,6 +2,7 @@ FROM python:3.7-alpine
 WORKDIR /code
 RUN apk add --no-cache gcc g++ musl-dev linux-headers libffi-dev openssl-dev python3-dev
 RUN wget https://raw.githubusercontent.com/eficode/wait-for/v2.1.0/wait-for
+RUN chmod +x wait-for
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 EXPOSE 5000

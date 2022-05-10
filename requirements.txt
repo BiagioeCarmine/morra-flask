@@ -23,8 +23,7 @@ PyMySQL==1.0.2
 python-engineio==4.0.1
 python-socketio==5.1.0
 redis==3.5.3
-sentry-sdk==1.0.0
 six==1.15.0
 SQLAlchemy==1.4.1
-urllib3==1.26.4
+urllib3==1.26.5
 Werkzeug==1.0.1

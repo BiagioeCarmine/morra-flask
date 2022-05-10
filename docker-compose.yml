@@ -1,16 +1,21 @@
 version: "3.8"
 services:
   web:
-    image: morra
+    build:
+      context: .
+      network: host
     env_file:
       .env
     ports:
-      - "5000:5000"
+      - 5000:5000
   redis:
     image: "redis"
-    ports:
-      - "6379:6379"
   mysql:
     env_file:
       .env
     image: "mysql"
+    volumes:
+      - testvol:/var/lib/mysql
+
+volumes:
+  testvol:
